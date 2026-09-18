@@ -357,6 +357,7 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 .hero h1 em { font-style: normal; color: #ffd6bd; }
 .hero .lead { color: rgba(255, 255, 255, 0.86); font-size: 1.12rem; max-width: 560px; }
 .hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.4rem; }
+@media (max-width: 640px) { .hero-actions { flex-direction: column; align-items: stretch; } .hero-actions .btn { width: 100%; justify-content: center; } } /* en el móvil, dos escalones iguales, no uno largo y otro corto */
 .hero-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
 .stat-tile { position: relative; display: flex; flex-direction: column; gap: 0.15rem; padding: 1.05rem 1.1rem; border-radius: 15px; background: rgba(255, 255, 255, 0.11); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; text-decoration: none; transition: background 0.15s; }
 a.stat-tile:hover { background: rgba(255, 255, 255, 0.18); text-decoration: none; }
@@ -674,6 +675,7 @@ a.stat-tile:hover { background: rgba(255, 255, 255, 0.18); text-decoration: none
 
 /* ---------- Estadísticas ---------- */
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(175px, 1fr)); gap: 0.85rem; margin: 1rem 0 1.5rem; }
+@media (min-width: 1100px) { .page-stats .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } } /* ocho recuadros: dos filas de cuatro, no seis y dos */
 .tile { position: relative; display: flex; flex-direction: column; gap: 0.2rem; padding: 1.05rem 1.1rem; background: #fff; border: 1px solid var(--line); border-radius: 13px; box-shadow: var(--shadow-sm); text-decoration: none; color: var(--ink); }
 a.tile:hover { border-color: var(--green-600); text-decoration: none; }
 .tile-icon { position: absolute; right: 12px; top: 12px; width: 30px; height: 30px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; background: var(--green-50); color: var(--green-700); }
@@ -733,7 +735,7 @@ a.tile:hover { border-color: var(--green-600); text-decoration: none; }
 .report-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.6rem; margin: 1.25rem 0 1.75rem; }
 .report section { margin-bottom: 1.75rem; }
 .report h2 { font-size: 1.15rem; border-left: 4px solid var(--accent); padding-left: 0.6rem; }
-.report-url { word-break: break-all; }
+.report-url { display: none; word-break: break-all; } /* en pantalla el título ya es un enlace; la dirección solo hace falta impresa */
 .report-footer { border-top: 1px solid var(--line); padding-top: 1rem; font-size: 0.82rem; color: var(--muted); }
 
 /* ---------- Auth, perfil, páginas de texto ---------- */
@@ -788,6 +790,7 @@ a.tile:hover { border-color: var(--green-600); text-decoration: none; }
 .admin-nav-extra a:hover { background: var(--bg); color: var(--ink); }
 @media (max-width: 780px) { .admin-nav-extra { margin-left: 0; padding-left: 0; border-left: 0; border-top: 1px solid var(--line); width: 100%; padding-top: 0.25rem; } }
 .admin-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.page-admin .grid-2.section { align-items: start; } /* la tarjeta de denuncias, vacía casi siempre, no se estira hasta la de comentarios */
 .launch-check { border-left: 4px solid var(--warn); margin-bottom: 1.5rem; }
 .launch-check h2 { display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem; }
 .launch-list { list-style: none; padding: 0; margin: 0.75rem 0 0; display: flex; flex-direction: column; gap: 0.6rem; }
@@ -1066,6 +1069,7 @@ a.tile:hover { border-color: var(--green-600); text-decoration: none; }
   .table th { background: #eee; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .table tr { break-inside: avoid; }
   .table-wrap { overflow: visible; } /* en papel la tabla sale entera, no recortada */
+  .report-url { display: inline; } /* impresa, la dirección es la única forma de llegar a la publicación */
   a { color: inherit; text-decoration: none; }
   .post-layout { grid-template-columns: 1fr; }
 }
