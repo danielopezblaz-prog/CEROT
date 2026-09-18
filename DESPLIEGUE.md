@@ -134,14 +134,11 @@ Busca en los mensajes de Caddy la línea del certificado. Cuando aparezca, abre
 ## 6. Los cinco minutos siguientes
 
 1. **Entra** con el correo y la contraseña que pusiste en `.env`.
-2. **Cambia la contraseña** desde «Mi perfil».
-3. **Borra el fichero del primer acceso**:
-   ```bash
-   rm data/PRIMER-ACCESO.txt
-   ```
-4. **Mira el recuadro del panel**: «Antes de abrir el foro al barrio» te dice si
+2. **Cambia la contraseña** desde «Mi perfil». Al hacerlo, el fichero con la
+   contraseña inicial (`data/PRIMER-ACCESO.txt`) se borra solo.
+3. **Mira el recuadro del panel**: «Antes de abrir el foro al barrio» te dice si
    queda algo pendiente. Desaparece solo cuando está todo.
-5. **Pruébalo desde el móvil**: entra al dominio, instálalo como app (menú del
+4. **Pruébalo desde el móvil**: entra al dominio, instálalo como app (menú del
    navegador → «Instalar aplicación») y publica una incidencia de prueba. Luego
    bórrala.
 
@@ -150,19 +147,18 @@ Busca en los mensajes de Caddy la línea del certificado. Cuando aparezca, abre
 ## 7. Copias de seguridad
 
 Todo lo que importa está en la carpeta `data/`: la base de datos y las fotos.
-Una tarea diaria que la copie fuera del servidor:
+El instalador deja programada una copia **cada noche a las 4:00** en
+`/var/backups/foro`, hecha con `scripts/copia.sh`: SQLite escribe una copia
+consistente de la base de datos sin parar el foro, y se empaqueta junto con las
+fotos. Se conservan los últimos 30 días. Para hacer una copia ahora mismo:
 
 ```bash
-sudo crontab -e
+bash scripts/copia.sh
 ```
 
-```
-0 4 * * * cd /opt/foro && tar czf /var/backups/foro-$(date +\%F).tar.gz data/ && find /var/backups -name 'foro-*.tar.gz' -mtime +30 -delete
-```
-
-Copia la base de datos a las 4 de la mañana y guarda los últimos 30 días. Y de
-vez en cuando, **bájate una copia a tu ordenador**: una copia que solo vive en el
-mismo servidor no es una copia de seguridad.
+Y de vez en cuando, **bájate una copia a tu ordenador** (están en
+`/var/backups/foro/`): una copia que solo vive en el mismo servidor no es una
+copia de seguridad.
 
 > `data/` contiene datos personales de vecinos. No la subas a ningún repositorio
 > ni la compartas por correo.
@@ -172,10 +168,12 @@ mismo servidor no es una copia de seguridad.
 ## Actualizar el foro más adelante
 
 ```bash
-cd /opt/foro
-git pull            # o vuelve a subir los ficheros
-docker compose up -d --build
+cd /opt/foro && bash scripts/actualizar.sh
 ```
+
+Hace una copia de seguridad, descarga la versión nueva, la construye y comprueba
+que la web responde pasando por el candado. Si la versión nueva no responde,
+**vuelve sola a la anterior** y te enseña el motivo para que lo cuentes.
 
 Los vecinos que tengan la app instalada verán un aviso de «hay una versión nueva»
 la próxima vez que la abran.

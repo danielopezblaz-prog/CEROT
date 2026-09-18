@@ -179,19 +179,12 @@ fi
 
 # -------------------------------------------------------------------- arranque
 
-# En producción el foro se niega a arrancar si sigue en el disco el fichero con
-# la contraseña inicial. Es a propósito, pero la primera vez pilla por sorpresa:
-# el contenedor se reinicia una y otra vez sin que se vea el motivo.
+# El fichero con la contraseña inicial ya no impide arrancar (se borra solo cuando
+# el administrador cambia su contraseña), pero conviene recordar que está ahí.
 if [ -f data/PRIMER-ACCESO.txt ]; then
-  titulo 'Atención'
-  echo 'Queda en el servidor el fichero data/PRIMER-ACCESO.txt, con la contraseña'
-  echo 'inicial. Mientras esté ahí, el foro NO arranca: es una protección adrede.'
   echo
-  read -r -p '¿Ya entraste y cambiaste la contraseña? Si es así lo borro. (s/N): ' respuesta </dev/tty || true
-  case "${respuesta:-n}" in
-    s|S|si|SI|Si|sí|Sí) rm -f data/PRIMER-ACCESO.txt; verde 'Borrado.' ;;
-    *) abortar 'Entra en el foro, cambia la contraseña en «Mi perfil» y vuelve a ejecutar esto.' ;;
-  esac
+  echo 'Aviso: queda el fichero data/PRIMER-ACCESO.txt con la contraseña inicial.'
+  echo 'Se borrará solo en cuanto cambies la contraseña desde «Mi perfil».'
 fi
 
 # El foro corre dentro del contenedor como el usuario «node» (identificador
@@ -246,6 +239,18 @@ El foro no responde. Esto es lo último que ha dicho (solo lo de los últimos mi
 fi
 verde "El foro responde en https://${DOMINIO_FINAL}."
 
+titulo 'Copias de seguridad'
+# Cada noche a las 4:00: base de datos (copia consistente) y fotos, a
+# /var/backups/foro, conservando 30 días. Si ya estaba programada, no se duplica.
+command -v crontab >/dev/null 2>&1 || apt-get install -y -qq cron >/dev/null 2>&1 || true
+if command -v crontab >/dev/null 2>&1; then
+  RAIZ="$(pwd)"
+  { crontab -l 2>/dev/null | grep -v 'scripts/copia.sh' || true; echo "0 4 * * * cd $RAIZ && bash scripts/copia.sh >> /var/log/foro-copias.log 2>&1"; } | crontab -
+  verde 'Copia de seguridad programada cada noche a las 4:00 en /var/backups/foro.'
+else
+  echo 'No he podido programar las copias (no hay cron). Hazlas a mano con: bash scripts/copia.sh'
+fi
+
 titulo 'Listo'
 verde "Abre https://${DOMINIO_FINAL} en el navegador."
 cat <<'FIN'
@@ -256,20 +261,16 @@ tardar un poco en conseguirlo la primera vez.
 Lo que toca ahora, en este orden:
 
   1. Entra en el foro con el correo y la contraseña que acabas de poner.
-  2. Cambia la contraseña desde «Mi perfil».
-  3. Borra el fichero de la contraseña inicial:
-
-         cd /opt/foro && rm data/PRIMER-ACCESO.txt
-
-     NO TE SALTES ESTE PASO. Mientras ese fichero exista, el foro se negará
-     a arrancar la próxima vez que se reinicie el servidor, y parecerá que
-     se ha roto sin motivo. Es una protección a propósito: ese fichero lleva
-     tu contraseña escrita en claro.
-
-  4. Mira el recuadro «Antes de abrir el foro al barrio» en el Panel:
+  2. Cambia la contraseña desde «Mi perfil». Al hacerlo, el fichero con la
+     contraseña inicial (data/PRIMER-ACCESO.txt) se borra solo.
+  3. Mira el recuadro «Antes de abrir el foro al barrio» en el Panel:
      te dice si queda algo pendiente y desaparece solo cuando está todo.
 
+Para actualizar el foro más adelante:   bash scripts/actualizar.sh
+   (guarda copia, actualiza, comprueba que la web responde y, si la versión
+    nueva falla, vuelve sola a la anterior)
+Copias de seguridad: cada noche a las 4:00 en /var/backups/foro (30 días).
+   Para hacer una ahora mismo:          bash scripts/copia.sh
 Para ver qué está pasando por dentro:   docker compose logs -f
-Para actualizar el foro más adelante:   git pull && docker compose up -d --build
 
 FIN
