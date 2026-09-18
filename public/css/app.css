@@ -405,10 +405,10 @@ a.stat-tile:hover { background: rgba(255, 255, 255, 0.18); text-decoration: none
 }
 @media (max-width: 860px) {
   .hero-foto { min-height: 0; padding: 2.5rem 0 2.75rem; }
-  /* En el móvil la portada es alta y estrecha y la foto, apaisada, tiene que estirarse
-     mucho para cubrirla. Un desenfoque leve convierte el grano en un fondo suave. */
-  .hero-foto::before { filter: blur(1.5px); transform: scale(1.03); }
-  .hero-foto::after { background: linear-gradient(180deg, rgba(7, 26, 22, 0.7), rgba(7, 26, 22, 0.5) 55%, rgba(7, 26, 22, 0.64)); }
+  /* En el móvil la portada es alta y estrecha: va una versión vertical de la foto
+     (public/img/portada-movil.webp), que cubre la pantalla casi sin ampliarse. */
+  .hero-foto::before { background-image: url('/img/portada-movil.webp'); }
+  .hero-foto::after { background: linear-gradient(180deg, rgba(7, 26, 22, 0.62), rgba(7, 26, 22, 0.4) 45%, rgba(7, 26, 22, 0.5)); }
 }
 
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
