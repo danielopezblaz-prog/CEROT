@@ -194,6 +194,16 @@ if [ -f data/PRIMER-ACCESO.txt ]; then
   esac
 fi
 
+# El foro corre dentro del contenedor como el usuario «node» (identificador
+# 1000), no como root. La carpeta data/ del servidor se monta encima de la del
+# contenedor, y Docker la crea a nombre de root: el foro no podría escribir sus
+# fotos ni su base de datos y se caería con «permission denied» al arrancar.
+# Hay que preparar la carpeta aquí fuera, antes de levantarlo.
+titulo 'Carpeta de datos'
+mkdir -p data
+chown -R 1000:1000 data
+verde 'data/ preparada para que el foro pueda escribir en ella.'
+
 titulo 'Arrancando el foro'
 echo 'La primera vez tarda unos minutos: hay que construirlo y pedir el'
 echo 'certificado de HTTPS a Let'"'"'s Encrypt.'

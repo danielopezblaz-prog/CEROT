@@ -103,6 +103,16 @@ Lo que no puede quedar vacío:
 
 ## 5. Arrancar
 
+Primero prepara la carpeta donde el foro guardará la base de datos y las
+fotos. El foro corre dentro del contenedor como un usuario sin privilegios,
+y si esa carpeta pertenece a `root` no podrá escribir en ella:
+
+```bash
+mkdir -p data && chown -R 1000:1000 data
+```
+
+Y ahora sí:
+
 ```bash
 docker compose up -d --build
 ```
@@ -181,6 +191,7 @@ la próxima vez que la abran.
 | El foro no arranca y habla de «puntos imprescindibles» | Es el repaso de seguridad: te está diciendo qué falta en `.env`. Léelo, lo dice en castellano. |
 | Los comentarios no aparecen solos | El proxy está guardando el flujo en un búfer. Con el `Caddyfile` incluido no pasa; si usas nginx, hace falta `proxy_buffering off;` para `/api/eventos`. |
 | Todos los vecinos comparten el límite de peticiones | Falta `TRUST_PROXY=1` en `.env`. |
+| `EACCES: permission denied, mkdir '/data/uploads'` | La carpeta `data/` pertenece a `root` y el foro corre como usuario sin privilegios. Arréglalo con `chown -R 1000:1000 data` y vuelve a levantarlo. |
 
 ---
 
