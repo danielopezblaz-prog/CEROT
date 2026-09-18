@@ -375,9 +375,12 @@ a.stat-tile:hover { background: rgba(255, 255, 255, 0.18); text-decoration: none
    un velo oscuro más denso a la izquierda para que el texto se lea, y las cifras
    en recuadros de cristal esmerilado. Solo la portada lleva la clase hero-foto;
    la cabecera de negocios sigue en verde. */
-.hero-foto { background: #0b2e27 url('/img/portada.webp') center / cover no-repeat; padding: 4.5rem 0 4.75rem; min-height: min(78vh, 740px); display: flex; align-items: center; }
-.hero-foto::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(7, 26, 22, 0.66) 0%, rgba(7, 26, 22, 0.42) 42%, rgba(7, 26, 22, 0.1) 100%), linear-gradient(180deg, rgba(7, 26, 22, 0.28), rgba(7, 26, 22, 0) 45%, rgba(7, 26, 22, 0.26)); pointer-events: none; }
-.hero-foto::after, .hero-foto .hero-skyline { display: none; }
+.hero-foto { background: #0b2e27; padding: 4.5rem 0 4.75rem; min-height: min(78vh, 740px); display: flex; align-items: center; }
+/* La foto va en un elemento propio, para poder suavizarla en el móvil sin tocar el texto. */
+.hero-foto::before { content: ""; position: absolute; inset: 0; background: url('/img/portada.webp') center / cover no-repeat; pointer-events: none; }
+/* El velo oscuro, más denso a la izquierda para que el titular se lea. Ocupa el sitio del punteado de la cabecera verde. */
+.hero-foto::after { content: ""; display: block; position: absolute; inset: 0; mask-image: none; -webkit-mask-image: none; background: linear-gradient(90deg, rgba(7, 26, 22, 0.66) 0%, rgba(7, 26, 22, 0.42) 42%, rgba(7, 26, 22, 0.1) 100%), linear-gradient(180deg, rgba(7, 26, 22, 0.28), rgba(7, 26, 22, 0) 45%, rgba(7, 26, 22, 0.26)); background-size: auto; pointer-events: none; }
+.hero-foto .hero-skyline { display: none; }
 .hero-foto .hero-inner { width: 100%; }
 .hero-foto .eyebrow { display: flex; align-items: center; gap: 0.7rem; color: #cfe6dd; letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.78rem; font-weight: 700; }
 .hero-foto .eyebrow::before { content: ""; width: 26px; height: 2px; background: currentColor; flex: none; }
@@ -401,8 +404,11 @@ a.stat-tile:hover { background: rgba(255, 255, 255, 0.18); text-decoration: none
   .hero-foto .btn-outline-light { background: rgba(14, 40, 34, 0.5); }
 }
 @media (max-width: 860px) {
-  .hero-foto { min-height: 0; padding: 2.5rem 0 2.75rem; background-image: url('/img/portada-movil.webp'); } /* versión ligera de la foto: el móvil no necesita 1.900 px */
-  .hero-foto::before { background: linear-gradient(180deg, rgba(7, 26, 22, 0.7), rgba(7, 26, 22, 0.5) 55%, rgba(7, 26, 22, 0.64)); }
+  .hero-foto { min-height: 0; padding: 2.5rem 0 2.75rem; }
+  /* En el móvil la portada es alta y estrecha y la foto, apaisada, tiene que estirarse
+     mucho para cubrirla. Un desenfoque leve convierte el grano en un fondo suave. */
+  .hero-foto::before { filter: blur(1.5px); transform: scale(1.03); }
+  .hero-foto::after { background: linear-gradient(180deg, rgba(7, 26, 22, 0.7), rgba(7, 26, 22, 0.5) 55%, rgba(7, 26, 22, 0.64)); }
 }
 
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
