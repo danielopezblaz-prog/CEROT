@@ -14,8 +14,10 @@
         <li><a href="/incidencias">Todas las publicaciones</a></li>
         <li><a href="/incidencias?estado=pendientes">Pendientes de resolver</a></li>
         <li><a href="/mapa">Mapa del barrio</a></li>
+        <% if (isMod) { %>
         <li><a href="/estadisticas">Estado del barrio</a></li>
         <li><a href="/informe">Informe para el Ayuntamiento</a></li>
+        <% } %>
       </ul>
     </div>
     <div>

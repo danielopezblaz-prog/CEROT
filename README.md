@@ -21,7 +21,7 @@ Diseño propio sin dependencias externas: tipografía Manrope autoalojada, icono
 - Fotos (hasta 4 por publicación, optimizadas automáticamente), ubicación exacta en el mapa, organismo responsable y **número de registro de la reclamación oficial**.
 - Botón **«Me afecta / lo apoyo»** para sumar apoyos, comentarios e **historial de estados**: abierta → en trámite → resuelta / cerrada, con notas.
 - Compartir por **WhatsApp**, Telegram, X, Facebook o correo, con vista previa (Open Graph) al pegar el enlace en un grupo.
-- **Mapa del barrio** con todas las incidencias, **Estado del barrio** con estadísticas y evolución mensual, y **Informe** imprimible / PDF / CSV para llevar al Ayuntamiento, al Pleno o a los medios.
+- **Mapa del barrio** con todas las incidencias.
 - Página de **recursos**: cómo reclamar paso a paso, teléfonos y enlaces oficiales.
 - **App para el móvil**: se instala desde el propio navegador, sin pasar por ninguna tienda.
   Icono en la pantalla de inicio, pantalla completa, barra de secciones abajo, accesos directos
@@ -38,6 +38,7 @@ Diseño propio sin dependencias externas: tipografía Manrope autoalojada, icono
 
 **Para quien lo gestiona**
 - Roles: vecino/a, moderador/a, administrador/a.
+- **Estado del barrio** (estadísticas y evolución mensual) e **Informe** imprimible / PDF / CSV para llevar al Ayuntamiento, al Pleno o a los medios. Son privados: solo los ve la moderación, que decide qué compartir y cuándo.
 - Panel de moderación: denuncias de contenido, ocultar / fijar / eliminar publicaciones, gestión de usuarios (roles, bloqueo, restablecer contraseñas), copia de seguridad descargable y borrado del contenido de ejemplo.
 - **Compartir en Facebook** con un clic desde el panel, con opción de retirar lo publicado. Opcional y siempre manual; ver el apartado correspondiente más abajo.
 - Seguridad: contraseñas cifradas (scrypt), sesiones en servidor, protección CSRF, límites de peticiones contra spam y fuerza bruta, cabeceras de seguridad (Helmet + CSP), validación de subidas.

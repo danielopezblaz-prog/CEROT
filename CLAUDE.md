@@ -24,7 +24,7 @@ Para el usuario, `Iniciar.cmd` lo arranca con doble clic.
 |---|---|
 | `npm start` | Arranca el foro |
 | `npm run dev` | Igual, recargando al cambiar `src/` |
-| `npm test` | 35 pruebas (node:test, base de datos en memoria) |
+| `npm test` | 37 pruebas (node:test, base de datos en memoria) |
 | `npm run rastreo` | Recorre las 186 páginas con 3 perfiles y avisa de las rotas |
 | `npm run carga` | Mide peticiones por segundo, incluido el directo con 300 conexiones |
 | `npm run exportar` | Copia estática navegable en `export/` (ver README) |
@@ -75,6 +75,10 @@ Son suyas y algunas tienen consecuencias legales:
    ningún repositorio, no se mete en capturas ni en copias de ejemplo.
 5. **Interfaz y comentarios del código, en castellano.** Incluidos los nombres de
    variables nuevos. El usuario lee el código.
+6. **Estado del barrio e Informe son privados.** Solo los ve la moderación
+   (moderador/a o administrador/a), que decide qué compartir y cuándo. Sin enlaces
+   para los vecinos, fuera de robots.txt, y la API de estadísticas también cerrada.
+   Lo pidió él el 18/09/2026.
 
 ---
 
@@ -99,6 +103,11 @@ Son suyas y algunas tienen consecuencias legales:
 - **La cabecera tiene tres variantes** (`nav-guest`, `nav-user-in`, `nav-mod`) que
   se pliegan a 920, 1000 y 1140 px. Si se añade un enlace hay que **medir**
   `brand.right` contra `nav.left` a varios anchos, no mirar capturas.
+- **El repaso de seguridad solo tumba el arranque por falta de HTTPS.** El fichero
+  de la contraseña inicial (`data/PRIMER-ACCESO.txt`) sale en rojo en el panel pero
+  no impide arrancar: en producción dejaba el contenedor reiniciándose sin fin
+  tras cualquier actualización. Se borra solo cuando el administrador cambia su
+  contraseña. Para actualizar en el servidor: `bash scripts/actualizar.sh`.
 - **Escribir ficheros:** los heredocs de Bash largos fallan en este equipo
   («unexpected EOF»). Usa la herramienta Write para ficheros de cierto tamaño.
 
@@ -126,7 +135,7 @@ Pendiente antes de abrir al barrio:
 
 - **Servidor y HTTPS.** Ver `DESPLIEGUE.md`. Sin HTTPS la app no se puede instalar.
 - **`LEGAL_OWNER` y `CONTACT_EMAIL`** en el `.env`: obligatorio por el RGPD.
-- **Cambiar la contraseña de administración** y borrar `data/PRIMER-ACCESO.txt`.
+- **Cambiar la contraseña de administración** (al hacerlo se borra solo `data/PRIMER-ACCESO.txt`).
 - **Borrar el contenido de ejemplo** desde el panel.
 - **Recuperación de contraseña por correo: no existe.** Es el único hueco
   funcional real. Hace falta un proveedor de envío (Brevo, Resend o el SMTP del

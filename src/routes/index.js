@@ -4,9 +4,13 @@ import { csvEscape, escapeHtml, excerpt } from '../utils/text.js';
 import { toIso, formatDate } from '../utils/dates.js';
 import { STATUSES, TYPES } from '../utils/constants.js';
 import { RECURSOS, PASOS_RECLAMACION } from '../data/recursos.js';
+import { requireRole } from '../middleware/auth.js';
 
 export function indexRoutes({ config, services }) {
   const router = express.Router();
+  // Estado del barrio y el informe son privados: los ve la moderación, que decide
+  // qué compartir y cuándo. Lo decidió el usuario (18/09/2026).
+  const soloModeracion = requireRole('moderador', 'admin');
 
   router.get('/', (req, res) => {
     const stats = services.stats.overview();
@@ -52,7 +56,7 @@ export function indexRoutes({ config, services }) {
     });
   });
 
-  router.get('/estadisticas', (req, res) => {
+  router.get('/estadisticas', soloModeracion, (req, res) => {
     res.render('pages/stats', {
       pageMeta: { title: 'Estado del barrio', description: 'Cifras de incidencias abiertas, resueltas y tiempos de respuesta.' },
       stats: services.stats.overview(),
@@ -66,7 +70,7 @@ export function indexRoutes({ config, services }) {
     });
   });
 
-  router.get('/informe', (req, res) => {
+  router.get('/informe', soloModeracion, (req, res) => {
     const filters = parseFilters(req.query, services.categories);
     const posts = services.posts.forReport(filters);
     const summary = summarize(posts);
@@ -80,7 +84,7 @@ export function indexRoutes({ config, services }) {
     });
   });
 
-  router.get('/informe.csv', (req, res) => {
+  router.get('/informe.csv', soloModeracion, (req, res) => {
     const filters = parseFilters(req.query, services.categories);
     const posts = services.posts.forReport(filters);
     const header = ['ID', 'Fecha', 'Tipo', 'Categoría', 'Título', 'Estado', 'Ubicación', 'Apoyos', 'Comentarios', 'Organismo responsable', 'Referencia oficial', 'Fecha reclamación', 'Fecha resolución', 'Enlace'];
@@ -140,7 +144,7 @@ export function indexRoutes({ config, services }) {
   });
 
   router.get('/robots.txt', (req, res) => {
-    res.type('text/plain').send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /perfil\nDisallow: /acceder\nDisallow: /registro\nSitemap: ${config.baseUrl}/feed.xml\n`);
+    res.type('text/plain').send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /estadisticas\nDisallow: /informe\nDisallow: /perfil\nDisallow: /acceder\nDisallow: /registro\nSitemap: ${config.baseUrl}/feed.xml\n`);
   });
 
   return router;

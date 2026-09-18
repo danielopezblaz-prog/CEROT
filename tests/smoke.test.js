@@ -1,5 +1,9 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { launchChecklist } from '../src/utils/security.js';
 import { config } from '../src/config.js';
 import { createApp } from '../src/app.js';
 
@@ -58,7 +62,7 @@ before(async () => {
 after(() => server?.close());
 
 test('páginas públicas responden', async () => {
-  for (const path of ['/', '/incidencias', '/incidencias?estado=pendientes&orden=apoyos', '/mapa', '/estadisticas', '/informe', '/normas', '/sobre', '/recursos', '/aviso-legal', '/privacidad', '/acceder', '/registro']) {
+  for (const path of ['/', '/incidencias', '/incidencias?estado=pendientes&orden=apoyos', '/mapa', '/normas', '/sobre', '/recursos', '/aviso-legal', '/privacidad', '/acceder', '/registro']) {
     const res = await get(path);
     assert.equal(res.status, 200, `GET ${path}`);
     const html = await res.text();
@@ -75,13 +79,56 @@ test('contenido de ejemplo visible y API JSON', async () => {
   const data = await api.json();
   assert.ok(data.count > 0);
   assert.ok(data.markers[0].lat);
+  const rss = await get('/feed.xml');
+  assert.match(await rss.text(), /<rss/);
+});
+
+test('Estado del barrio e informe son privados: solo la moderación', async () => {
+  // Sin sesión: ni las páginas, ni el CSV, ni la API, ni enlaces en la portada.
+  for (const path of ['/estadisticas', '/informe', '/informe.csv']) {
+    const res = await get(path);
+    assert.equal(res.status, 302, `GET ${path} sin sesión`);
+    assert.match(res.headers.get('location'), /^\/acceder/);
+  }
+  assert.ok([302, 401].includes((await get('/api/estadisticas')).status), 'la API tampoco es pública');
+  const portada = await (await get('/')).text();
+  assert.doesNotMatch(portada, /href="\/(estadisticas|informe)"/, 'la portada no enlaza a las páginas privadas');
+  assert.match(await (await get('/robots.txt')).text(), /Disallow: \/informe/);
+  // Con la administración dentro: todo responde y los enlaces vuelven.
+  const token = csrfFrom(await (await get('/acceder')).text());
+  assert.equal((await post('/acceder', { _csrf: token, email: seed.adminCreated.email, contrasena: seed.adminCreated.password })).status, 302);
+  for (const path of ['/estadisticas', '/informe']) assert.equal((await get(path)).status, 200, `GET ${path} como administración`);
   const stats = await (await get('/api/estadisticas')).json();
   assert.ok(stats.overview.total > 0);
   const csv = await get('/informe.csv');
   assert.equal(csv.status, 200);
   assert.match(csv.headers.get('content-type'), /text\/csv/);
-  const rss = await get('/feed.xml');
-  assert.match(await rss.text(), /<rss/);
+  assert.match(await (await get('/')).text(), /href="\/estadisticas"/);
+  jar.clear();
+});
+
+test('el fichero de la contraseña inicial avisa pero no impide arrancar, y se borra al cambiar la contraseña', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'foro-'));
+  await fs.writeFile(path.join(dir, 'PRIMER-ACCESO.txt'), 'prueba');
+  const cfg = { ...config, dataDir: dir, baseUrl: 'https://ejemplo.es', isProduction: true, trustProxy: true, site: { ...config.site, legalOwner: 'Asociación', contactEmail: 'a@b.es' } };
+  const check = launchChecklist(cfg, null);
+  assert.ok(check.pending.some((i) => i.key === 'credenciales' && i.critical), 'sigue en rojo');
+  assert.equal(check.blockers.length, 0, 'pero no tumba el arranque');
+  assert.equal(launchChecklist({ ...cfg, baseUrl: 'http://ejemplo.es' }, null).blockers[0]?.key, 'https', 'sin HTTPS sí');
+  await fs.rm(dir, { recursive: true, force: true });
+  // Al cambiar la contraseña del administrador, el fichero desaparece solo.
+  const fichero = path.join(config.dataDir, 'PRIMER-ACCESO.txt');
+  await fs.writeFile(fichero, 'prueba');
+  let token = csrfFrom(await (await get('/acceder')).text());
+  await post('/acceder', { _csrf: token, email: seed.adminCreated.email, contrasena: seed.adminCreated.password });
+  token = csrfFrom(await (await get('/perfil')).text());
+  const res = await post('/perfil/contrasena', { _csrf: token, actual: seed.adminCreated.password, contrasena: 'Clave-nueva-2026x', contrasena2: 'Clave-nueva-2026x' });
+  assert.equal(res.status, 302);
+  assert.match(await follow(res), /Contraseña cambiada/);
+  await assert.rejects(fs.access(fichero), 'el fichero se ha borrado');
+  // Se deja la contraseña como estaba para las pruebas siguientes.
+  await seedUsers.setPassword(seedUsers.findByEmail(seed.adminCreated.email).id, seed.adminCreated.password);
+  jar.clear();
 });
 
 test('cabeceras de seguridad y redirecciones internas', async () => {

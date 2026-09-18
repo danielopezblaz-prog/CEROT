@@ -11,9 +11,10 @@ import { launchChecklist } from './utils/security.js';
 
 const { app, db, seed, services } = createApp(config);
 
-/* Repaso de seguridad al arrancar. En producción, servir sin HTTPS o dejar el
-   fichero de la contraseña inicial en el disco impide el arranque, salvo que se
-   pida expresamente lo contrario con PERMITIR_INSEGURO=1. */
+/* Repaso de seguridad al arrancar. En producción, servir sin HTTPS impide el
+   arranque, salvo que se pida expresamente lo contrario con PERMITIR_INSEGURO=1.
+   El resto de puntos (el fichero de la contraseña inicial incluido) se avisa en
+   consola y en el panel, pero no tumba el foro. */
 const check = launchChecklist(config, services);
 if (check.pending.length) {
   const line = '─'.repeat(64);

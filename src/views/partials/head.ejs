@@ -49,8 +49,10 @@
       <a class="nav-link <%= isActivePath('/incidencias') && !currentPath.startsWith('/incidencias/nueva') ? 'is-active' : '' %>" href="/incidencias">Incidencias</a>
       <a class="nav-link <%= isActivePath('/mapa') ? 'is-active' : '' %>" href="/mapa">Mapa</a>
       <a class="nav-link <%= isActivePath('/negocios') ? 'is-active' : '' %>" href="/negocios">Negocios</a>
+      <% if (isMod) { %>
       <a class="nav-link <%= isActivePath('/estadisticas') ? 'is-active' : '' %>" href="/estadisticas">Estado del barrio</a>
       <a class="nav-link nav-link-extra <%= isActivePath('/informe') ? 'is-active' : '' %>" href="/informe">Informe</a>
+      <% } %>
       <a class="nav-link nav-link-extra <%= isActivePath('/recursos') ? 'is-active' : '' %>" href="/recursos">Recursos</a>
       <div class="nav-actions">
         <a class="btn btn-accent btn-sm" href="/incidencias/nueva"><%- icon('plus') %> Publicar</a>

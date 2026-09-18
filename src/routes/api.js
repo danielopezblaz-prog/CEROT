@@ -1,5 +1,6 @@
 import express from 'express';
 import { apiLimiter } from '../middleware/limits.js';
+import { requireRole } from '../middleware/auth.js';
 import { parseFilters } from '../utils/filters.js';
 import { STATUSES, TYPES, BUSINESS_CATEGORY_MAP } from '../utils/constants.js';
 
@@ -55,7 +56,8 @@ export function apiRoutes({ services }) {
     res.json({ count: markers.length, markers });
   });
 
-  router.get('/estadisticas', (req, res) => {
+  // Las cifras agregadas son privadas, como la página de Estado del barrio.
+  router.get('/estadisticas', requireRole('moderador', 'admin'), (req, res) => {
     res.json({
       overview: services.stats.overview(),
       byStatus: services.stats.byStatus(),

@@ -62,7 +62,7 @@
   <section class="section">
     <div class="section-head">
       <h2>Explora por categoría</h2>
-      <a class="link-more" href="/estadisticas">Ver estadísticas <%- icon('arrow-right') %></a>
+      <% if (isMod) { %><a class="link-more" href="/estadisticas">Ver estadísticas <%- icon('arrow-right') %></a><% } %>
     </div>
     <div class="category-grid">
       <% for (const c of categories) { %>
@@ -158,7 +158,7 @@
       <div class="step">
         <span class="step-icon step-icon-4"><%- icon('chart') %></span>
         <h3><span class="step-num">4</span> Presenta el informe</h3>
-        <p>Genera un <a href="/informe">informe con datos</a> para llevarlo al Ayuntamiento, a los medios o al Pleno.</p>
+        <p>Con todo lo publicado, la administración del foro prepara <% if (isMod) { %><a href="/informe">un informe con datos</a><% } else { %>un informe con datos<% } %> para llevarlo al Ayuntamiento, a los medios o al Pleno.</p>
       </div>
     </div>
   </section>

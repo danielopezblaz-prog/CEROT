@@ -53,6 +53,11 @@ export function checkPassword(password, { email = '', firstName = '', lastName =
 /**
  * Repaso de seguridad antes de abrir el foro al barrio. Devuelve una lista de
  * comprobaciones con su estado, para mostrarla en el panel y en la consola.
+ *
+ * «critical» es lo que se enseña en rojo. «fatal» es lo único que impide arrancar
+ * en producción: servir sin HTTPS. El fichero de la contraseña inicial es grave,
+ * pero tumbar el foro entero por él dejaba el contenedor reiniciándose sin fin
+ * tras cualquier actualización, sin que se viera el motivo.
  */
 export function launchChecklist(config, services) {
   const primerAcceso = path.join(config.dataDir, 'PRIMER-ACCESO.txt');
@@ -73,13 +78,15 @@ export function launchChecklist(config, services) {
       label: 'Servir el foro por HTTPS',
       help: 'BASE_URL debe empezar por https://. Sin cifrado, las contraseñas de los vecinos viajan en claro.',
       critical: true,
+      fatal: true,
     },
     {
       key: 'credenciales',
       done: !fs.existsSync(primerAcceso),
       label: 'Borrar el fichero de la contraseña inicial',
-      help: `Entra, cambia la contraseña en Mi perfil y borra ${primerAcceso}.`,
+      help: `Entra y cambia la contraseña en Mi perfil: el fichero se borra solo. Si prefieres, bórralo a mano: ${primerAcceso}.`,
       critical: true,
+      fatal: false,
     },
     {
       key: 'demo',
@@ -107,6 +114,6 @@ export function launchChecklist(config, services) {
   return {
     items,
     pending: items.filter((i) => !i.done),
-    blockers: items.filter((i) => !i.done && i.critical),
+    blockers: items.filter((i) => !i.done && i.fatal),
   };
 }

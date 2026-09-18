@@ -1,3 +1,5 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import express from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import { loginLimiter, registerLimiter, registerAttemptsLimiter } from '../middleware/limits.js';
@@ -30,7 +32,7 @@ function destroy(req) {
   return new Promise((resolve) => req.session.destroy(() => resolve()));
 }
 
-export function authRoutes({ services }) {
+export function authRoutes({ config, services }) {
   const router = express.Router();
 
   router.get('/registro', (req, res) => {
@@ -143,6 +145,9 @@ export function authRoutes({ services }) {
       req.flash('error', 'Las contraseñas nuevas no coinciden.');
     } else {
       await services.users.setPassword(req.user.id, password);
+      // El fichero con la contraseña inicial ya no sirve de nada una vez cambiada:
+      // se borra solo, para que nadie tenga que acordarse.
+      if (req.user.role === 'admin') await fs.rm(path.join(config.dataDir, 'PRIMER-ACCESO.txt'), { force: true });
       req.flash('success', 'Contraseña cambiada correctamente.');
     }
     res.redirect('/perfil');
