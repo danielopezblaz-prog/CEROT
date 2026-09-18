@@ -58,16 +58,19 @@
     <% if (summary.byCategory.length) { %>
     <section>
       <h2>Resumen por categoría</h2>
+      <div class="table-wrap">
       <table class="table table-compact">
         <thead><tr><th>Categoría</th><th class="num">Publicaciones</th><th class="num">Pendientes</th></tr></thead>
         <tbody><% for (const c of summary.byCategory) { %><tr><td><%= c.name %></td><td class="num"><%= c.total %></td><td class="num"><%= c.pendientes %></td></tr><% } %></tbody>
       </table>
+      </div>
     </section>
     <% } %>
 
     <section>
       <h2>Relación de publicaciones <span class="muted">(<%= posts.length %>)</span></h2>
       <% if (posts.length) { %>
+      <div class="table-wrap">
       <table class="table table-compact report-table">
         <thead><tr><th>#</th><th>Publicación</th><th>Categoría</th><th>Estado</th><th class="num">Apoyos</th><th>Fecha</th><th>Reclamación oficial</th></tr></thead>
         <tbody>
@@ -88,6 +91,7 @@
           <% }) %>
         </tbody>
       </table>
+      </div>
       <% } else { %>
       <p class="muted">No hay publicaciones con los criterios seleccionados.</p>
       <% } %>
