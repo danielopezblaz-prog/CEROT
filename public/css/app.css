@@ -368,6 +368,42 @@ a.stat-tile:hover { background: rgba(255, 255, 255, 0.18); text-decoration: none
 .stat-alert:hover { background: rgba(255, 214, 189, 0.26); text-decoration: none; }
 @media (max-width: 860px) { .hero-inner { grid-template-columns: 1fr; gap: 2rem; } .hero { padding: 2.5rem 0 8rem; } .hero-skyline { height: 120px; } }
 
+
+/* ---------- Portada con foto ---------- */
+/* La portada lleva una foto real del barrio detrás (public/img/portada.webp), con
+   un velo oscuro más denso a la izquierda para que el texto se lea, y las cifras
+   en recuadros de cristal esmerilado. Solo la portada lleva la clase hero-foto;
+   la cabecera de negocios sigue en verde. */
+.hero-foto { background: #0b2e27 url('/img/portada.webp') center / cover no-repeat; padding: 4.5rem 0 4.75rem; min-height: min(78vh, 740px); display: flex; align-items: center; }
+.hero-foto::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(7, 26, 22, 0.66) 0%, rgba(7, 26, 22, 0.42) 42%, rgba(7, 26, 22, 0.1) 100%), linear-gradient(180deg, rgba(7, 26, 22, 0.28), rgba(7, 26, 22, 0) 45%, rgba(7, 26, 22, 0.26)); pointer-events: none; }
+.hero-foto::after, .hero-foto .hero-skyline { display: none; }
+.hero-foto .hero-inner { width: 100%; }
+.hero-foto .eyebrow { display: flex; align-items: center; gap: 0.7rem; color: #cfe6dd; letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.78rem; font-weight: 700; }
+.hero-foto .eyebrow::before { content: ""; width: 26px; height: 2px; background: currentColor; flex: none; }
+.hero-foto h1 { font-weight: 700; font-size: clamp(2.2rem, 1.4rem + 3vw, 3.6rem); line-height: 1.08; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.25); }
+.hero-foto h1 em { color: #ffc99a; }
+.hero-foto .lead { color: rgba(255, 255, 255, 0.92); text-shadow: 0 1px 12px rgba(0, 0, 0, 0.3); }
+.hero-foto .btn-outline-light { background: rgba(255, 255, 255, 0.14); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255, 255, 255, 0.45); }
+.hero-foto .stat-tile { gap: 0.3rem; padding: 1.1rem 2.4rem 1.1rem 1.15rem; border-radius: 16px; background: rgba(255, 255, 255, 0.17); border: 1px solid rgba(255, 255, 255, 0.32); backdrop-filter: blur(18px) saturate(1.35); -webkit-backdrop-filter: blur(18px) saturate(1.35); box-shadow: 0 10px 34px rgba(0, 0, 0, 0.18); }
+.hero-foto a.stat-tile:hover { background: rgba(255, 255, 255, 0.26); }
+.hero-foto .stat-icon { position: static; width: 36px; height: 36px; border-radius: 50%; background: rgba(255, 255, 255, 0.92); color: var(--green-800); margin-bottom: 0.55rem; }
+.hero-foto .stat-icon .icon { width: 1.05rem; height: 1.05rem; }
+.hero-foto .stat-value { font-size: 2.2rem; font-weight: 700; }
+.hero-foto .stat-label { color: rgba(255, 255, 255, 0.88); }
+/* Los recuadros que son enlaces llevan una flecha a la derecha. Va dibujada con
+   bordes, sin imagen, para que no dependa de la política de seguridad. */
+.hero-foto a.stat-tile::after { content: ""; position: absolute; right: 18px; top: 50%; width: 9px; height: 9px; border-right: 2px solid rgba(255, 255, 255, 0.85); border-top: 2px solid rgba(255, 255, 255, 0.85); transform: translateY(-50%) rotate(45deg); }
+.hero-foto .stat-alert { background: rgba(255, 214, 189, 0.2); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+/* Navegadores sin desenfoque de fondo: recuadros más opacos para que se lean. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hero-foto .stat-tile { background: rgba(14, 40, 34, 0.74); }
+  .hero-foto .btn-outline-light { background: rgba(14, 40, 34, 0.5); }
+}
+@media (max-width: 860px) {
+  .hero-foto { min-height: 0; padding: 2.5rem 0 2.75rem; }
+  .hero-foto::before { background: linear-gradient(180deg, rgba(7, 26, 22, 0.7), rgba(7, 26, 22, 0.5) 55%, rgba(7, 26, 22, 0.64)); }
+}
+
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
 .section-head h2 { margin: 0; display: flex; align-items: center; gap: 0.5rem; }
 .section-head-center { flex-direction: column; align-items: center; text-align: center; gap: 0.25rem; margin-bottom: 1.75rem; }
