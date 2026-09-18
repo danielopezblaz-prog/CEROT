@@ -11,7 +11,7 @@
  *  2. Nada de interceptar el flujo de eventos en vivo ni la API.
  */
 
-const VERSION = 'v3';
+const VERSION = 'v4'; // subir el numero obliga a todos los navegadores a soltar las copias guardadas
 const ARMAZON = 'foro-armazon-' + VERSION;
 const FOTOS = 'foro-fotos-' + VERSION;
 const MAPAS = 'foro-mapas-' + VERSION;
