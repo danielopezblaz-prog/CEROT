@@ -69,7 +69,10 @@ async function deLaCaja(req, nombre, tope) {
   const guardada = await cache.match(req);
   if (guardada) return guardada;
   const res = await fetch(req);
-  if (res && (res.ok || res.type === 'opaque')) {
+  // Solo se guarda lo que ha llegado bien de verdad. Una respuesta «opaca» (sin
+  // CORS) no dice si es un plano o un error, así que se sirve pero no se guarda:
+  // guardarla dejaba una zona del mapa gris para siempre tras un fallo pasajero.
+  if (res && res.ok) {
     cache.put(req, res.clone());
     recortar(nombre, tope);
   }
