@@ -1,0 +1,10 @@
+node_modules/
+/data/
+tools/
+.env
+*.log
+.DS_Store
+Thumbs.db
+export/
+.env.produccion
+*.zip

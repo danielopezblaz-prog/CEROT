@@ -1,0 +1,29 @@
+<%- include('../partials/head') %>
+<div class="container container-narrow">
+  <article class="card prose-page">
+    <h1>Política de privacidad</h1>
+    <p class="lead">Recogemos los datos mínimos imprescindibles para que el foro funcione y evitar el spam. Nunca los vendemos ni los cedemos.</p>
+    <h2>Responsable del tratamiento</h2>
+    <p><strong><%= site.legalOwner || '[nombre de la asociación o persona responsable — configúralo en LEGAL_OWNER]' %></strong><% if (site.contactEmail) { %>, contacto: <a href="mailto:<%= site.contactEmail %>"><%= site.contactEmail %></a><% } %>.</p>
+    <h2>Qué datos tratamos</h2>
+    <ul>
+      <li><strong>Cuenta:</strong> nombre, apellidos, teléfono, correo electrónico y contraseña (almacenada cifrada con bcrypt; nadie puede leerla).</li>
+      <li><strong>Qué es público y qué no:</strong> en el foro apareces con tu nombre y la inicial de tu primer apellido, por ejemplo «Marta G.». Tus <strong>apellidos completos, tu teléfono y tu correo no se muestran a nadie</strong>: solo tienen acceso a ellos las personas que administran el foro, y los usan para verificar que eres del barrio y para contactar contigo si hay un problema con tu cuenta o con algo que hayas publicado.</li>
+      <li><strong>Contenido que publicas:</strong> publicaciones, comentarios, apoyos, fotos y ubicaciones que tú mismo indicas. Es público.</li>
+      <li><strong>Datos técnicos:</strong> dirección IP y fecha en los registros del servidor, con fines de seguridad y para limitar abusos. Se conservan un máximo de 30 días.</li>
+      <li><strong>Cookies:</strong> únicamente una cookie técnica de sesión (<code>vereda.sid</code>) necesaria para mantener tu inicio de sesión. No usamos cookies publicitarias ni de seguimiento.</li>
+    </ul>
+    <h2>Para qué y con qué base legal</h2>
+    <p>Para prestar el servicio del foro (ejecución de la relación contigo al registrarte), moderar y garantizar la seguridad (interés legítimo) y elaborar estadísticas e informes agregados, que no contienen datos personales.</p>
+    <h2>Terceros</h2>
+    <p>Los mapas se cargan desde servidores de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, que reciben tu dirección IP al mostrar las teselas del mapa. La búsqueda de direcciones utiliza el servicio Nominatim de OpenStreetMap. Los botones de compartir abren la aplicación correspondiente (WhatsApp, Telegram, X, Facebook) en tu dispositivo; no cargan código de esas empresas en esta web.</p>
+    <h2>Conservación</h2>
+    <p>Conservamos tu cuenta mientras la mantengas activa. Puedes pedir su eliminación en cualquier momento; las publicaciones pueden conservarse de forma anónima si tienen interés para el barrio, salvo que solicites su borrado.</p>
+    <h2>Tus derechos</h2>
+    <p>Puedes ejercer los derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a la administración del foro. También puedes reclamar ante la <a href="https://www.aepd.es" target="_blank" rel="noopener">Agencia Española de Protección de Datos</a>.</p>
+    <h2>Menores</h2>
+    <p>El registro está pensado para mayores de 14 años.</p>
+    <p class="muted small">Última actualización: septiembre de 2026.</p>
+  </article>
+</div>
+<%- include('../partials/foot') %>

@@ -1,0 +1,63 @@
+<%- include('../partials/head') %>
+<div class="container container-narrow">
+  <div class="card install-hero">
+    <img src="/img/icon-512.png" alt="Icono del foro">
+    <div>
+      <h1>Llévate el barrio en el móvil</h1>
+      <p class="lead">El foro se instala como una app: icono en la pantalla de inicio, pantalla completa y arranque instantáneo. No hace falta pasar por ninguna tienda ni ocupa casi espacio.</p>
+      <button type="button" class="btn btn-accent btn-lg install-cta" data-install hidden><%- icon('download') %> Instalar ahora</button>
+      <p class="muted small install-cta" data-install-ios hidden><%- icon('info') %> En el iPhone se instala desde el menú de compartir de Safari. Tienes los pasos aquí abajo.</p>
+    </div>
+  </div>
+
+  <div class="install-grid">
+    <section class="card">
+      <h2><%- icon('phone') %> Android</h2>
+      <ol class="install-steps">
+        <li><span>Abre el foro en <strong>Chrome</strong>.</span></li>
+        <li><span>Toca el menú de los tres puntos, arriba a la derecha.</span></li>
+        <li><span>Elige <strong>«Instalar aplicación»</strong> o <strong>«Añadir a pantalla de inicio»</strong>.</span></li>
+        <li><span>Listo: el icono queda junto al resto de tus apps.</span></li>
+      </ol>
+      <p class="muted small">Si el botón naranja de arriba aparece, con pulsarlo basta.</p>
+    </section>
+
+    <section class="card">
+      <h2><%- icon('phone') %> iPhone y iPad</h2>
+      <ol class="install-steps">
+        <li><span>Abre el foro en <strong>Safari</strong> (en iPhone solo funciona desde Safari).</span></li>
+        <li><span>Toca el botón de compartir, el cuadrado con la flecha hacia arriba.</span></li>
+        <li><span>Baja y elige <strong>«Añadir a pantalla de inicio»</strong>.</span></li>
+        <li><span>Confirma con <strong>«Añadir»</strong>.</span></li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="card mt">
+    <h2><%- icon('sparkles') %> Qué cambia al instalarlo</h2>
+    <ul class="feature-list">
+      <li><span><strong>Abre a pantalla completa</strong>, sin la barra del navegador, con la barra de secciones abajo al alcance del pulgar.</span></li>
+      <li><span><strong>Aguanta sin cobertura</strong>: lo que ya habías visto sigue ahí y, si se va el dato, avisa en lugar de dar error.</span></li>
+      <li><span><strong>Se actualiza sola</strong>. Cuando publicamos una mejora, la app avisa y se pone al día con un toque.</span></li>
+      <li><span><strong>Accesos directos</strong>: mantén pulsado el icono para publicar una incidencia, abrir el mapa o ver los negocios.</span></li>
+      <li><span><strong>Compartir al foro</strong>: en Android, al compartir un texto o un enlace desde otra app, el foro aparece entre las opciones.</span></li>
+    </ul>
+  </section>
+
+  <section class="card mt">
+    <h2><%- icon('help') %> Preguntas rápidas</h2>
+    <details class="faq">
+      <summary>¿Por qué no está en Google Play ni en la App Store?</summary>
+      <p>Porque no hace falta. Es la misma web, instalada directamente desde el navegador: sin cuotas de desarrollador, sin esperas de revisión y sin que nadie tenga que actualizarla a mano. Si algún día interesa estar en las tiendas, la app se puede empaquetar sin rehacer nada.</p>
+    </details>
+    <details class="faq">
+      <summary>¿Ocupa mucho en el móvil?</summary>
+      <p>Unos pocos megas. Guarda los estilos, los iconos y las fotos que ya has visto; nada más.</p>
+    </details>
+    <details class="faq">
+      <summary>¿Puedo quitarla?</summary>
+      <p>Sí, como cualquier otra app: mantén pulsado el icono y elige desinstalar o eliminar. La cuenta y tus publicaciones siguen intactas.</p>
+    </details>
+  </section>
+</div>
+<%- include('../partials/foot') %>

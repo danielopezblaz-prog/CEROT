@@ -1,0 +1,143 @@
+<%- include('../partials/head', { bodyClass: 'page-admin' }) %>
+<div class="container">
+  <%- include('../admin/nav', { active: 'panel' }) %>
+  <% const bizPending = businesses.pendingCount; %>
+  <div class="page-head">
+    <div><h1>Panel de moderación</h1><p class="lead">Resumen del foro y tareas pendientes.</p></div>
+  </div>
+
+  <div class="tiles">
+    <a class="tile" href="/admin/denuncias"><span class="tile-value <%= pendingCount ? 'text-danger' : '' %>"><%= pendingCount %></span><span class="tile-label">Denuncias pendientes</span></a>
+    <a class="tile" href="/admin/publicaciones"><span class="tile-value"><%= number(stats.total) %></span><span class="tile-label">Publicaciones visibles</span></a>
+    <a class="tile" href="/admin/publicaciones?estado=abierta"><span class="tile-value"><%= number(stats.abierta) %></span><span class="tile-label">Abiertas</span></a>
+    <div class="tile"><span class="tile-value"><%= hiddenCount %></span><span class="tile-label">Ocultas</span></div>
+    <a class="tile" href="/admin/usuarios"><span class="tile-value"><%= number(stats.users) %></span><span class="tile-label">Usuarios activos</span></a>
+    <div class="tile"><span class="tile-value"><%= number(stats.comments) %></span><span class="tile-label">Comentarios</span></div>
+    <a class="tile" href="/admin/negocios"><span class="tile-value <%= bizPending ? 'text-danger' : '' %>"><%= bizPending %></span><span class="tile-label">Negocios por aprobar</span></a>
+    <a class="tile" href="/negocios"><span class="tile-value"><%= number(businesses.total) %></span><span class="tile-label">Negocios publicados</span></a>
+    <a class="tile" href="/negocios/ofertas"><span class="tile-value"><%= number(businesses.offers) %></span><span class="tile-label">Ofertas y eventos activos</span></a>
+  </div>
+
+  <% if (isAdmin && launch.pending.length) { %>
+  <div class="card launch-check">
+    <h2><%- icon('shield') %> Antes de abrir el foro al barrio</h2>
+    <p class="muted">Quedan <strong><%= launch.pending.length %></strong> <%= plural(launch.pending.length, 'punto de seguridad por resolver', 'puntos de seguridad por resolver') %>. Esta lista solo la ves tú y desaparece sola cuando estén todos hechos.</p>
+    <ul class="launch-list">
+      <% for (const item of launch.pending) { %>
+      <li class="<%= item.critical ? 'is-critical' : '' %>">
+        <%- icon(item.critical ? 'warning' : 'info') %>
+        <div>
+          <strong><%= item.label %></strong><% if (item.critical) { %> <span class="chip chip-critical">Imprescindible</span><% } %>
+          <p><%= item.help %></p>
+        </div>
+      </li>
+      <% } %>
+    </ul>
+  </div>
+  <% } %>
+
+  <% if (bizPending > 0) { %>
+  <div class="notice notice-warning">
+    <%- icon('store') %>
+    <div>
+      <strong>Hay <%= bizPending %> <%= plural(bizPending, 'negocio esperando aprobación', 'negocios esperando aprobación') %>.</strong>
+      Comprueba que existen de verdad en el barrio antes de publicarlos.
+      <ul class="mt-sm">
+        <% for (const b of businesses.pending) { %>
+        <li><a href="/negocios/<%= b.slug %>"><%= b.name %></a> <span class="muted small">· <%= b.owner_name %> · <%= timeAgo(b.created_at) %></span></li>
+        <% } %>
+      </ul>
+      <a class="btn btn-primary btn-sm mt-sm" href="/admin/negocios?estado=pendiente">Revisar los negocios</a>
+    </div>
+  </div>
+  <% } %>
+
+  <% if (demoCount > 0 && isAdmin) { %>
+  <div class="notice notice-warning">
+    <%- icon('sparkles') %>
+    <div>
+      <strong>Hay <%= demoCount %> publicaciones de ejemplo</strong> (y usuarios ficticios) creadas para mostrar cómo funciona el foro. Cuando estés listo para abrirlo a los vecinos, elimínalas.
+      <form method="post" action="/admin/demo/purgar" class="inline-form mt-sm" data-confirm="¿Eliminar todo el contenido de ejemplo? Esta acción no se puede deshacer.">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit" class="btn btn-primary btn-sm"><%- icon('trash') %> Eliminar contenido de ejemplo</button>
+      </form>
+    </div>
+  </div>
+  <% } %>
+
+  <div class="grid-2 gap-lg section">
+    <div class="card">
+      <div class="section-head"><h2>Denuncias recientes</h2><a class="link-more" href="/admin/denuncias">Ver todas</a></div>
+      <% if (pending.length) { %>
+      <ul class="admin-list">
+        <% for (const r of pending) { %>
+        <li>
+          <span class="chip chip-hidden"><%= r.target_type === 'post' ? 'Publicación' : 'Comentario' %></span>
+          <a href="/incidencias/<%= r.post_slug %>"><%= excerpt(r.target_text, 90) %></a>
+          <span class="meta"><%= REPORT_REASONS[r.reason] || r.reason %> · por <%= r.reporter_name %> · <%= timeAgo(r.created_at) %></span>
+        </li>
+        <% } %>
+      </ul>
+      <% } else { %><p class="muted">No hay denuncias pendientes. 🎉</p><% } %>
+    </div>
+    <div class="card">
+      <div class="section-head"><h2>Últimos comentarios</h2></div>
+      <ul class="admin-list">
+        <% for (const c of recentComments) { %>
+        <li>
+          <a href="/incidencias/<%= c.post_slug %>#comentario-<%= c.id %>"><%= excerpt(c.body, 90) %></a>
+          <span class="meta"><%= c.author_name %> en «<%= excerpt(c.post_title, 50) %>» · <%= timeAgo(c.created_at) %><% if (c.is_hidden) { %> · <span class="chip chip-hidden">Oculto</span><% } %></span>
+        </li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid-2 gap-lg section">
+    <div class="card">
+      <div class="section-head"><h2>Últimos usuarios</h2><% if (isAdmin) { %><a class="link-more" href="/admin/usuarios">Gestionar</a><% } %></div>
+      <ul class="admin-list">
+        <% for (const u of recentUsers) { %>
+        <li><strong><%= u.name %></strong> <span class="meta"><%= ROLES[u.role] %> · registrado <%= timeAgo(u.created_at) %><% if (u.is_banned) { %> · <span class="chip chip-hidden">Bloqueado</span><% } %><% if (u.is_demo) { %> · <span class="chip chip-demo">Ejemplo</span><% } %></span></li>
+        <% } %>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="section-head"><h2><%- icon('chart') %> Cifras del barrio</h2></div>
+      <p class="muted">Estas dos páginas son <strong>públicas</strong>: cualquier vecino las ve y puede compartirlas. Las tienes aquí para llegar rápido cuando prepares una reunión o una reclamación.</p>
+      <div class="admin-links">
+        <a class="btn btn-primary btn-sm" href="/estadisticas"><%- icon('chart') %> Estado del barrio</a>
+        <a class="btn btn-ghost btn-sm" href="/informe"><%- icon('file') %> Informe para el Ayuntamiento</a>
+        <a class="btn btn-ghost btn-sm" href="/informe.csv"><%- icon('download') %> Descargar CSV</a>
+      </div>
+      <p class="muted small mt-sm"><%- icon('info') %> El informe se puede filtrar por fechas, categoría y estado antes de imprimirlo o guardarlo en PDF.</p>
+    </div>
+
+    <div class="card">
+      <div class="section-head"><h2><%- icon('facebook') %> Difusión en Facebook</h2></div>
+      <% if (facebook.enabled) { %>
+        <p class="muted">Nada se publica solo. Usa el botón <strong>Compartir en Facebook</strong> en cada publicación cuando quieras difundirla. Compartidas hasta ahora: <strong><%= facebook.count %></strong>.</p>
+        <% if (facebook.recent.length) { %>
+        <ul class="admin-list">
+          <% for (const s of facebook.recent) { %>
+          <li>
+            <a href="/incidencias/<%= s.slug %>"><%= excerpt(s.title, 70) %></a>
+            <span class="meta">Compartida <%= timeAgo(s.created_at) %><%= s.shared_by_name ? ` por ${s.shared_by_name}` : '' %> · <a href="<%= s.external_url %>" target="_blank" rel="noopener">ver en Facebook</a></span>
+          </li>
+          <% } %>
+        </ul>
+        <% } %>
+      <% } else { %>
+        <p class="muted">Sin configurar. Cuando añadas <code>FACEBOOK_PAGE_ID</code> y <code>FACEBOOK_PAGE_TOKEN</code> al fichero <code>.env</code> aparecerá un botón para compartir cada publicación en la página de Facebook del foro. Los pasos están en el README, apartado «Compartir en Facebook».</p>
+      <% } %>
+    </div>
+    <% if (isAdmin) { %>
+    <div class="card">
+      <h2>Mantenimiento</h2>
+      <p class="muted">Descarga una copia de la base de datos (publicaciones, usuarios, comentarios). Las fotos están en la carpeta <code>data/uploads</code>; cópiala también.</p>
+      <a class="btn btn-primary btn-sm" href="/admin/copia-seguridad"><%- icon('download') %> Descargar copia de seguridad</a>
+    </div>
+    <% } %>
+  </div>
+</div>
+<%- include('../partials/foot') %>

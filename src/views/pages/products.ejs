@@ -1,0 +1,107 @@
+<%- include('../partials/head', { bodyClass: 'page-productos' }) %>
+<div class="container container-wide">
+  <nav class="breadcrumb" aria-label="Migas de pan">
+    <a href="/negocios">Negocios</a><span aria-hidden="true">›</span><a href="/negocios/<%= business.slug %>"><%= business.name %></a>
+  </nav>
+
+  <div class="page-head">
+    <div>
+      <h1>Fotos de productos</h1>
+      <p class="lead">El catálogo de <strong><%= business.name %></strong>. <%= products.length %> de <%= maxProducts %> productos. Los vecinos lo ven en la ficha del negocio.</p>
+    </div>
+    <a class="btn btn-ghost" href="/negocios/<%= business.slug %>#productos"><%- icon('eye') %> Ver cómo queda</a>
+  </div>
+
+  <% if (errors.length) { %>
+  <div class="notice notice-error" role="alert">
+    <%- icon('warning') %>
+    <div><strong>Revisa estos puntos:</strong><ul><% for (const e of errors) { %><li><%= e %></li><% } %></ul></div>
+  </div>
+  <% } %>
+
+  <% if (unnamed > 0) { %>
+  <div class="notice notice-warning">
+    <%- icon('bell') %>
+    <span>Tienes <strong><%= unnamed %></strong> <%= plural(unnamed, 'foto sin nombre', 'fotos sin nombre') %>. Ponles nombre abajo y pulsa «Guardar el catálogo» para que se vean bien en tu ficha.</span>
+  </div>
+  <% } %>
+
+  <div class="grid-2 gap-lg">
+    <form method="post" action="/negocios/<%= business.slug %>/productos/varias" enctype="multipart/form-data" class="card product-bulk">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <h2><%- icon('camera') %> Subir varias fotos de golpe</h2>
+      <p class="muted">La forma rápida: elige todas las fotos y después les pones nombre y precio en la lista de abajo.</p>
+      <label class="file-drop" data-file-drop>
+        <input type="file" name="fotos" accept="image/jpeg,image/png,image/webp" multiple data-max="<%= bulkMax %>" data-max-mb="<%= maxMb %>">
+        <span class="file-drop-text"><%- icon('image', 'icon-lg') %><strong>Elegir fotos</strong><small>Hasta <%= bulkMax %> a la vez, máx. <%= maxMb %> MB cada una</small></span>
+      </label>
+      <div class="file-preview" data-file-preview></div>
+      <button type="submit" class="btn btn-accent btn-block"><%- icon('plus') %> Subir las fotos</button>
+    </form>
+
+    <form method="post" action="/negocios/<%= business.slug %>/productos" enctype="multipart/form-data" class="card product-single">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <h2><%- icon('store') %> Añadir un producto</h2>
+      <p class="muted">Con todos sus datos de una vez.</p>
+      <label class="field"><span>Nombre <em class="req">*</em></span><input type="text" name="nombre" value="<%= values.name || '' %>" maxlength="80" required placeholder="Ej.: Empanada de atún"></label>
+      <label class="field"><span>Precio</span><input type="text" name="precio" value="<%= values.priceText || '' %>" maxlength="40" placeholder="Ej.: 2,50 € la ración"></label>
+      <label class="field"><span>Descripción corta</span><input type="text" name="descripcion" value="<%= values.description || '' %>" maxlength="300" placeholder="Ej.: Masa casera, recién hecha cada mañana"></label>
+      <label class="field"><span>Foto</span><input type="file" name="foto" accept="image/jpeg,image/png,image/webp"></label>
+      <button type="submit" class="btn btn-primary btn-block"><%- icon('plus') %> Añadir al catálogo</button>
+    </form>
+  </div>
+
+  <section id="lista" class="section">
+    <div class="section-head">
+      <h2><%- icon('layers') %> Tu catálogo</h2>
+      <% if (products.length) { %><span class="muted small">Marca «Destacado» para que un producto salga el primero. Desmarca «Disponible» para ocultarlo sin borrarlo.</span><% } %>
+    </div>
+
+    <% if (products.length) { %>
+    <form method="post" action="/negocios/<%= business.slug %>/productos/guardar" enctype="multipart/form-data" class="product-rows">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <% products.forEach((p, i) => { %>
+      <div class="product-row <%= p.is_available ? '' : 'is-off' %> <%= (p.name || '').trim() ? '' : 'needs-name' %>">
+        <input type="hidden" name="id" value="<%= p.id %>">
+        <label class="product-row-photo" title="Pulsa para cambiar la foto">
+          <% if (p.thumb || p.image) { %><img src="/uploads/<%= p.thumb || p.image %>" alt=""><% } else { %><span class="product-row-nophoto"><%- icon('image') %></span><% } %>
+          <input type="file" name="foto_<%= p.id %>" accept="image/jpeg,image/png,image/webp" data-row-photo>
+          <span class="product-row-change"><%- icon('camera') %></span>
+        </label>
+        <div class="product-row-fields">
+          <label><span class="sr-only">Nombre del producto <%= i + 1 %></span>
+            <input type="text" name="nombre" value="<%= p.name %>" maxlength="80" placeholder="Nombre del producto" class="product-row-name">
+          </label>
+          <label><span class="sr-only">Precio</span>
+            <input type="text" name="precio" value="<%= p.price_text || '' %>" maxlength="40" placeholder="Precio" class="product-row-price">
+          </label>
+          <label class="product-row-desc"><span class="sr-only">Descripción</span>
+            <input type="text" name="descripcion" value="<%= p.description || '' %>" maxlength="300" placeholder="Descripción corta (opcional)">
+          </label>
+        </div>
+        <div class="product-row-flags">
+          <label class="checkbox"><input type="checkbox" name="disponible" value="<%= p.id %>" <%= p.is_available ? 'checked' : '' %>><span>Disponible</span></label>
+          <label class="checkbox"><input type="checkbox" name="destacado" value="<%= p.id %>" <%= p.is_featured ? 'checked' : '' %>><span>Destacado</span></label>
+        </div>
+        <div class="product-row-actions">
+          <button type="submit" class="btn btn-ghost btn-sm" formaction="/negocios/<%= business.slug %>/productos/<%= p.id %>/mover" formenctype="application/x-www-form-urlencoded" name="direccion" value="subir" title="Subir" <%= i === 0 ? 'disabled' : '' %>><%- icon('chevron-left', 'icon-up') %></button>
+          <button type="submit" class="btn btn-ghost btn-sm" formaction="/negocios/<%= business.slug %>/productos/<%= p.id %>/mover" formenctype="application/x-www-form-urlencoded" name="direccion" value="bajar" title="Bajar" <%= i === products.length - 1 ? 'disabled' : '' %>><%- icon('chevron-right', 'icon-down') %></button>
+          <button type="submit" class="btn btn-ghost btn-sm btn-danger-text" formaction="/negocios/<%= business.slug %>/productos/<%= p.id %>/eliminar" formenctype="application/x-www-form-urlencoded" data-confirm="¿Eliminar este producto del catálogo?" title="Eliminar"><%- icon('trash') %></button>
+        </div>
+      </div>
+      <% }) %>
+      <div class="product-rows-save">
+        <button type="submit" class="btn btn-accent btn-lg"><%- icon('check') %> Guardar el catálogo</button>
+        <span class="muted small">Se guardan de una vez los nombres, precios y fotos que hayas cambiado.</span>
+      </div>
+    </form>
+    <% } else { %>
+    <div class="empty">
+      <%- icon('camera', 'icon-lg') %>
+      <h3>Todavía no hay fotos de productos</h3>
+      <p>Sube unas cuantas fotos de lo que vendes. Es lo que más miran los vecinos cuando entran en una ficha.</p>
+    </div>
+    <% } %>
+  </section>
+</div>
+<%- include('../partials/foot') %>

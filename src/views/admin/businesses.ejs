@@ -1,0 +1,63 @@
+<%- include('../partials/head', { bodyClass: 'page-admin' }) %>
+<div class="container">
+  <%- include('../admin/nav', { active: 'businesses' }) %>
+  <div class="page-head">
+    <div>
+      <h1>Negocios del barrio</h1>
+      <p class="lead"><%= number(result.total) %> en total<% if (pendingCount > 0) { %>, <strong><%= pendingCount %></strong> <%= plural(pendingCount, 'pendiente de aprobar', 'pendientes de aprobar') %><% } %>.</p>
+    </div>
+    <a class="btn btn-accent" href="/negocios/nuevo"><%- icon('plus') %> Dar de alta un negocio</a>
+  </div>
+
+  <% if (pendingCount > 0 && !status) { %>
+  <div class="notice notice-warning"><%- icon('bell') %><span>Hay altas esperando revisión. Comprueba que el negocio existe de verdad en el barrio y que los datos son correctos antes de publicarlo.</span></div>
+  <% } %>
+
+  <form class="filters card" method="get" action="/admin/negocios">
+    <div class="filters-search"><%- icon('search') %><input type="search" name="q" value="<%= q %>" placeholder="Buscar por nombre o dirección…" aria-label="Buscar"></div>
+    <label class="field-inline"><span>Estado</span>
+      <select name="estado"><option value="">Todos</option><% for (const s of Object.values(BUSINESS_STATUSES)) { %><option value="<%= s.key %>" <%= status === s.key ? 'selected' : '' %>><%= s.label %></option><% } %></select>
+    </label>
+    <div class="filters-actions"><button type="submit" class="btn btn-primary btn-sm">Filtrar</button><a class="btn btn-ghost btn-sm" href="/admin/negocios">Limpiar</a></div>
+  </form>
+
+  <div class="card table-wrap">
+    <table class="table">
+      <thead><tr><th>Negocio</th><th>Responsable</th><th>Estado</th><th class="num">Ofertas</th><th>Alta</th><th>Acciones</th></tr></thead>
+      <tbody>
+        <% for (const b of result.items) { %>
+        <% const cat = BUSINESS_CATEGORY_MAP[b.category] || { name: b.category, color: '#64748b' }; %>
+        <tr class="<%= b.status !== 'activo' ? 'row-hidden' : '' %>">
+          <td>
+            <a href="/negocios/<%= b.slug %>"><%= b.name %></a>
+            <div class="meta"><span class="meta-cat" style="--chip: <%= cat.color %>"><%- businessIcon(b.category) %> <%= cat.name %></span><% if (b.address) { %> · <%= b.address %><% } %><% if (b.is_demo) { %> · <span class="chip chip-demo">Ejemplo</span><% } %></div>
+          </td>
+          <td><%= b.owner_name %></td>
+          <td><span class="status status-biz-<%= b.status %> status-sm"><%= BUSINESS_STATUSES[b.status].label %></span></td>
+          <td class="num"><%= b.active_offers %></td>
+          <td><%= formatDate(b.created_at) %></td>
+          <td class="actions">
+            <% if (b.status !== 'activo') { %>
+            <form method="post" action="/admin/negocios/<%= b.id %>/aprobar" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="volver" value="<%= currentUrl %>"><button type="submit" class="btn btn-primary btn-sm"><%- icon('check') %> Publicar</button></form>
+            <% } else { %>
+            <details class="dropdown dropdown-left dropdown-sm">
+              <summary class="btn btn-ghost btn-sm" title="Suspender"><%- icon('eye-off') %></summary>
+              <form method="post" action="/admin/negocios/<%= b.id %>/suspender" class="dropdown-panel">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="volver" value="<%= currentUrl %>">
+                <label class="field"><span>Motivo (lo verá quien lo gestiona)</span><textarea name="nota" rows="2" maxlength="300" placeholder="Ej.: los datos de contacto no son correctos."></textarea></label>
+                <button type="submit" class="btn btn-primary btn-sm">Suspender</button>
+              </form>
+            </details>
+            <% } %>
+            <a class="btn btn-ghost btn-sm" href="/negocios/<%= b.slug %>/editar" title="Editar"><%- icon('edit') %></a>
+            <form method="post" action="/admin/negocios/<%= b.id %>/eliminar" class="inline-form" data-confirm="¿Eliminar «<%= b.name %>» y todas sus ofertas?"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="volver" value="<%= currentUrl %>"><button type="submit" class="btn btn-ghost btn-sm btn-danger-text" title="Eliminar"><%- icon('trash') %></button></form>
+          </td>
+        </tr>
+        <% } %>
+        <% if (!result.items.length) { %><tr><td colspan="6" class="muted">Todavía no hay negocios dados de alta.</td></tr><% } %>
+      </tbody>
+    </table>
+  </div>
+  <%- include('../partials/pagination', { result, qs: (o) => { const p = new URLSearchParams(); if (q) p.set('q', q); if (status) p.set('estado', status); if (o.page > 1) p.set('pagina', o.page); const s = p.toString(); return s ? `?${s}` : ''; } }) %>
+</div>
+<%- include('../partials/foot') %>

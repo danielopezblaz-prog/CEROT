@@ -1,0 +1,40 @@
+<%- include('../partials/head') %>
+<div class="container">
+  <div class="page-head">
+    <div>
+      <h1>Recursos y contactos útiles</h1>
+      <p class="lead">Este foro da visibilidad, pero la reclamación con validez legal se presenta ante el organismo responsable. Aquí tienes cómo hacerlo y a quién acudir.</p>
+    </div>
+  </div>
+
+  <section class="card section">
+    <h2><%- icon('file') %> Cómo reclamar paso a paso</h2>
+    <ol class="steps-list">
+      <% pasos.forEach((p, i) => { %>
+      <li><span class="step-num"><%= i + 1 %></span><div><strong><%= p.title %></strong><p><%= p.text %></p></div></li>
+      <% }) %>
+    </ol>
+    <p class="notice notice-info"><%- icon('info') %> <span>Consejo: guarda siempre el justificante con el número de registro y añádelo a tu publicación con «Cambiar estado → En trámite». Así todo el barrio puede hacer seguimiento.</span></p>
+  </section>
+
+  <div class="resources-grid">
+    <% for (const r of recursos) { %>
+    <section class="card resource">
+      <h2><%- icon(r.icon) %> <%= r.title %></h2>
+      <p class="muted"><%= r.intro %></p>
+      <ul class="resource-list">
+        <% for (const it of r.items) { %>
+        <li>
+          <strong><%= it.label %></strong>
+          <% if (it.phone) { %><a class="phone" href="tel:<%= it.phone.replace(/\s+/g, '') %>"><%- icon('phone') %> <%= it.phone %></a><% } %>
+          <% if (it.url) { %><a class="ext" href="<%= it.url %>" target="_blank" rel="noopener"><%= it.url.replace(/^https?:\/\//, '') %> <%- icon('external') %></a><% } %>
+          <% if (it.detail) { %><p><%= it.detail %></p><% } %>
+        </li>
+        <% } %>
+      </ul>
+    </section>
+    <% } %>
+  </div>
+  <p class="muted small">Los teléfonos y enlaces se revisan periódicamente. Si detectas alguno erróneo, comunícalo a la administración del foro.</p>
+</div>
+<%- include('../partials/foot') %>

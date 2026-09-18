@@ -1,0 +1,73 @@
+<%- include('../partials/head') %>
+<div class="container">
+  <div class="page-head">
+    <div>
+      <h1>Mi perfil</h1>
+      <p class="lead">Gestiona tu cuenta y revisa tus publicaciones.</p>
+    </div>
+  </div>
+
+  <div class="grid-2 gap-lg">
+    <div class="card">
+      <div class="profile-head">
+        <span class="avatar avatar-lg" style="--av: <%= avatarHue(user.name) %>" aria-hidden="true"><%= initials(user.name) %></span>
+        <div>
+          <h2 class="no-margin"><%= user.name %></h2>
+          <p class="muted"><%= user.email %> · <%= ROLES[user.role] %> · miembro desde <%= formatDate(user.created_at) %></p>
+        </div>
+      </div>
+      <form method="post" action="/perfil/datos" class="form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="grid-2 gap">
+          <label class="field"><span>Nombre</span><input type="text" name="nombre" value="<%= user.first_name || '' %>" required maxlength="40" autocomplete="given-name"></label>
+          <label class="field"><span>Apellidos</span><input type="text" name="apellidos" value="<%= user.last_name || '' %>" required maxlength="60" autocomplete="family-name"></label>
+        </div>
+        <label class="field"><span>Teléfono</span>
+          <input type="tel" name="telefono" value="<%= user.phone || '' %>" required maxlength="30" autocomplete="tel" placeholder="612 34 56 78">
+          <small class="hint">Privado. Solo lo ve la administración del foro.</small>
+        </label>
+        <p class="muted small"><%- icon('shield') %> En el foro apareces como <strong><%= user.name %></strong>. Tus apellidos completos y tu teléfono no son públicos.</p>
+        <button type="submit" class="btn btn-primary btn-sm">Guardar mis datos</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2><%- icon('lock') %> Cambiar contraseña</h2>
+      <form method="post" action="/perfil/contrasena" class="form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label class="field"><span>Contraseña actual</span><input type="password" name="actual" required autocomplete="current-password"></label>
+        <label class="field"><span>Nueva contraseña</span><input type="password" name="contrasena" required minlength="8" autocomplete="new-password"></label>
+        <label class="field"><span>Repite la nueva contraseña</span><input type="password" name="contrasena2" required minlength="8" autocomplete="new-password"></label>
+        <button type="submit" class="btn btn-primary btn-sm">Cambiar contraseña</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card section">
+    <div class="section-head">
+      <h2>Mis publicaciones <span class="count-pill"><%= posts.length %></span></h2>
+      <a class="btn btn-accent btn-sm" href="/incidencias/nueva"><%- icon('plus') %> Nueva</a>
+    </div>
+    <% if (posts.length) { %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Publicación</th><th>Estado</th><th class="num">Apoyos</th><th class="num">Comentarios</th><th>Fecha</th><th></th></tr></thead>
+        <tbody>
+          <% for (const p of posts) { %>
+          <tr class="<%= p.is_hidden ? 'row-hidden' : '' %>">
+            <td><a href="/incidencias/<%= p.slug %>"><%= p.title %></a><% if (p.is_hidden) { %> <span class="chip chip-hidden">Oculta</span><% } %><br><span class="muted small meta-cat" style="--chip: <%= p.category_color %>"><%- categoryIcon(p.category_slug) %> <%= p.category_name %></span></td>
+            <td><span class="status status-<%= p.status %> status-sm"><%= STATUSES[p.status].label %></span></td>
+            <td class="num"><%= p.support_count %></td>
+            <td class="num"><%= p.comment_count %></td>
+            <td><%= formatDate(p.created_at) %></td>
+            <td class="actions"><a class="btn btn-ghost btn-sm" href="/incidencias/<%= p.slug %>/editar"><%- icon('edit') %> Editar</a></td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+    <% } else { %>
+    <p class="muted">Todavía no has publicado nada. <a href="/incidencias/nueva">Cuenta qué pasa en tu calle</a>.</p>
+    <% } %>
+  </div>
+</div>
+<%- include('../partials/foot') %>

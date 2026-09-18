@@ -1,0 +1,10 @@
+<% const shareText = `${shareTitle} — ${site.brand} ${site.name}`; const enc = encodeURIComponent; %>
+<div class="share" data-share data-url="<%= shareUrl %>" data-title="<%= shareText %>">
+  <span class="share-label"><%- icon('share') %> Compartir</span>
+  <a class="share-btn share-whatsapp" href="https://wa.me/?text=<%= enc(`${shareText}\n${shareUrl}`) %>" target="_blank" rel="noopener" title="Compartir por WhatsApp"><%- icon('whatsapp') %><span>WhatsApp</span></a>
+  <a class="share-btn share-telegram" href="https://t.me/share/url?url=<%= enc(shareUrl) %>&text=<%= enc(shareText) %>" target="_blank" rel="noopener" title="Compartir por Telegram"><%- icon('telegram') %><span>Telegram</span></a>
+  <a class="share-btn share-x" href="https://twitter.com/intent/tweet?text=<%= enc(shareText) %>&url=<%= enc(shareUrl) %>" target="_blank" rel="noopener" title="Compartir en X"><%- icon('xsocial') %><span>X</span></a>
+  <a class="share-btn share-facebook" href="https://www.facebook.com/sharer/sharer.php?u=<%= enc(shareUrl) %>" target="_blank" rel="noopener" title="Compartir en Facebook"><%- icon('facebook') %><span>Facebook</span></a>
+  <a class="share-btn" href="mailto:?subject=<%= enc(shareText) %>&body=<%= enc(`${shareText}\n\n${shareUrl}`) %>" title="Enviar por correo"><%- icon('mail') %><span>Correo</span></a>
+  <button type="button" class="share-btn" data-copy="<%= shareUrl %>" title="Copiar enlace"><%- icon('link') %><span data-copy-label>Copiar enlace</span></button>
+</div>

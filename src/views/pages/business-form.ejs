@@ -1,0 +1,132 @@
+<%- include('../partials/head', { useMap: true, extraScript: '/js/post-form.js' }) %>
+<div class="container container-narrow">
+  <div class="page-head">
+    <div>
+      <h1><%= mode === 'edit' ? `Editar ${business.name}` : 'Dar de alta un negocio' %></h1>
+      <p class="lead"><%= mode === 'edit' ? 'Mantén la ficha al día para que los vecinos encuentren lo que buscan.' : 'Rellena la ficha de tu negocio. Es gratis y no hay cuotas. La moderación la revisará antes de publicarla.' %></p>
+    </div>
+  </div>
+
+  <% if (errors.length) { %>
+  <div class="notice notice-error" role="alert">
+    <%- icon('warning') %>
+    <div><strong>Revisa estos puntos:</strong><ul><% for (const e of errors) { %><li><%= e %></li><% } %></ul></div>
+  </div>
+  <% } %>
+
+  <% if (mode === 'edit' && images.length) { %>
+    <% for (const img of images) { %>
+    <form id="borrar-foto-<%= img.id %>" method="post" action="/negocios/<%= business.slug %>/imagenes/<%= img.id %>/eliminar" hidden><input type="hidden" name="_csrf" value="<%= csrfToken %>"></form>
+    <% } %>
+  <% } %>
+
+  <form method="post" action="<%= mode === 'edit' ? `/negocios/${business.slug}/editar` : '/negocios' %>" enctype="multipart/form-data" class="form card form-post" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <label class="field">
+      <span>Nombre del negocio <em class="req">*</em></span>
+      <input type="text" name="nombre" value="<%= values.name || '' %>" maxlength="80" required placeholder="Ej.: Panadería La Espiga">
+    </label>
+
+    <fieldset class="field">
+      <legend><%- icon('layers') %> ¿A qué se dedica? <em class="req">*</em></legend>
+      <div class="cat-picker">
+        <% for (const c of categories) { %>
+        <label class="cat-option">
+          <input type="radio" name="categoria" value="<%= c.slug %>" required <%= values.category === c.slug ? 'checked' : '' %>>
+          <span class="cat-tile" style="--chip: <%= c.color %>"><span class="cat-tile-icon"><%- businessIcon(c.slug) %></span><span><%= c.name %></span></span>
+        </label>
+        <% } %>
+      </div>
+    </fieldset>
+
+    <label class="field">
+      <span>En una frase <em class="req">*</em></span>
+      <input type="text" name="resumen" value="<%= values.shortDesc || '' %>" maxlength="140" required minlength="10" placeholder="Ej.: Pan artesano y bollería hecha cada mañana en el barrio." data-counter>
+      <small class="hint">Es lo que se lee en el directorio, debajo del nombre.</small>
+    </label>
+
+    <label class="field">
+      <span>Descripción</span>
+      <textarea name="descripcion" rows="6" maxlength="3000" placeholder="Cuenta qué ofreces, desde cuándo estáis en el barrio, especialidades, si hacéis reparto…" data-counter><%= values.description || '' %></textarea>
+    </label>
+
+    <fieldset class="field">
+      <legend><%- icon('pin') %> Dónde está</legend>
+      <input type="text" name="direccion" value="<%= values.address || '' %>" maxlength="160" placeholder="Calle y número" aria-label="Dirección">
+      <div class="location-picker">
+        <div class="location-search">
+          <input type="search" placeholder="Buscar la dirección en el mapa…" aria-label="Buscar dirección" data-geocode-input>
+          <button type="button" class="btn btn-ghost btn-sm" data-geocode-btn><%- icon('search') %> Buscar</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-geolocate><%- icon('location') %> Usar mi ubicación</button>
+        </div>
+        <div id="mapa-selector" class="map map-picker" data-map-picker data-lat="<%= values.lat ?? map.lat %>" data-lng="<%= values.lng ?? map.lng %>" data-zoom="<%= values.lat ? 17 : map.zoom %>" data-has-point="<%= values.lat ? '1' : '0' %>" aria-label="Selector de ubicación"></div>
+        <div class="location-status">
+          <span data-location-status><%= values.lat ? 'Ubicación marcada en el mapa.' : 'Toca el mapa para marcar la puerta del negocio. Así los vecinos te encuentran.' %></span>
+          <button type="button" class="link-btn" data-clear-point <%= values.lat ? '' : 'hidden' %>>Quitar marcador</button>
+        </div>
+        <input type="hidden" name="lat" value="<%= values.lat ?? '' %>" data-lat-input>
+        <input type="hidden" name="lng" value="<%= values.lng ?? '' %>" data-lng-input>
+      </div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend><%- icon('phone') %> Contacto</legend>
+      <div class="grid-2 gap">
+        <label class="field"><span>Teléfono</span><input type="tel" name="telefono" value="<%= values.phone || '' %>" maxlength="20" placeholder="916 00 00 00"></label>
+        <label class="field"><span>WhatsApp</span><input type="tel" name="whatsapp" value="<%= values.whatsapp || '' %>" maxlength="20" placeholder="+34 600 00 00 00"></label>
+        <label class="field"><span>Correo electrónico</span><input type="email" name="email" value="<%= values.email || '' %>" maxlength="120"></label>
+        <label class="field"><span>Página web</span><input type="text" name="web" value="<%= values.website || '' %>" maxlength="200" placeholder="www.milocal.es"></label>
+        <label class="field"><span>Instagram</span><input type="text" name="instagram" value="<%= values.instagram || '' %>" maxlength="60" placeholder="milocal"><small class="hint">Solo el nombre de usuario, sin la arroba.</small></label>
+        <label class="field"><span>Facebook</span><input type="text" name="facebook" value="<%= values.facebook || '' %>" maxlength="200" placeholder="facebook.com/milocal"></label>
+      </div>
+    </fieldset>
+
+    <%- include('../partials/hours-fields', { values }) %>
+
+    <fieldset class="field">
+      <legend><%- icon('camera') %> Imágenes</legend>
+      <div class="grid-2 gap">
+        <label class="field">
+          <span>Logotipo</span>
+          <input type="file" name="logo" accept="image/jpeg,image/png,image/webp">
+          <small class="hint">Cuadrado, se recorta a 400 por 400 píxeles.</small>
+          <% if (mode === 'edit' && business.logo) { %><img class="form-preview form-preview-logo" src="/uploads/<%= business.logo %>" alt="Logotipo actual"><% } %>
+        </label>
+        <label class="field">
+          <span>Foto de portada</span>
+          <input type="file" name="portada" accept="image/jpeg,image/png,image/webp">
+          <small class="hint">Apaisada, es la imagen grande de la ficha.</small>
+          <% if (mode === 'edit' && business.cover_thumb) { %><img class="form-preview" src="/uploads/<%= business.cover_thumb %>" alt="Portada actual"><% } %>
+        </label>
+      </div>
+
+      <% if (mode === 'edit' && images.length) { %>
+      <p class="field-label">Galería</p>
+      <div class="image-manage">
+        <% for (const img of images) { %>
+        <figure class="image-thumb">
+          <img src="/uploads/<%= img.thumb || img.filename %>" alt="">
+          <button type="submit" form="borrar-foto-<%= img.id %>" class="image-remove" data-confirm="¿Eliminar esta foto?" title="Eliminar foto"><%- icon('x') %></button>
+        </figure>
+        <% } %>
+      </div>
+      <% } %>
+      <% const remaining = Math.max(0, maxGallery - (mode === 'edit' ? images.length : 0)); %>
+      <% if (remaining > 0) { %>
+      <label class="file-drop" data-file-drop>
+        <input type="file" name="galeria" accept="image/jpeg,image/png,image/webp" multiple data-max="<%= remaining %>" data-max-mb="<%= maxMb %>">
+        <span class="file-drop-text"><%- icon('image', 'icon-lg') %><strong>Añadir fotos a la galería</strong><small>Hasta <%= remaining %> imágenes, máx. <%= maxMb %> MB cada una</small></span>
+      </label>
+      <div class="file-preview" data-file-preview></div>
+      <% } %>
+    </fieldset>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="<%= mode === 'edit' ? `/negocios/${business.slug}` : '/negocios' %>">Cancelar</a>
+      <button type="submit" class="btn btn-accent btn-lg"><%- icon('check') %> <%= mode === 'edit' ? 'Guardar cambios' : 'Enviar el alta' %></button>
+    </div>
+    <p class="muted small">Al dar de alta un negocio confirmas que eres su responsable o que cuentas con su permiso, y aceptas las <a href="/normas">normas de la comunidad</a>. No se admite publicidad de empresas ajenas al barrio.</p>
+  </form>
+</div>
+<%- include('../partials/foot', { useMap: true, extraScript: '/js/post-form.js' }) %>

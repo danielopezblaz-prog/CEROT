@@ -1,0 +1,36 @@
+{
+  "name": "foro-vereda-de-los-estudiantes",
+  "version": "1.0.0",
+  "description": "Foro vecinal de Vereda de los Estudiantes (Leganés): publica, apoya y da visibilidad a lo que pasa en el barrio.",
+  "private": true,
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch src/server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test \"tests/**/*.test.js\"",
+    "icons": "node scripts/generate-icons.js",
+    "admin:password": "node scripts/reset-password.js",
+    "rastreo": "node --disable-warning=ExperimentalWarning scripts/rastreo.mjs",
+    "carga": "node --disable-warning=ExperimentalWarning scripts/carga.mjs",
+    "exportar": "node --disable-warning=ExperimentalWarning scripts/exportar.mjs",
+    "secreto": "node scripts/secreto.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "compression": "^1.8.0",
+    "dotenv": "^17.2.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "express-session": "^1.18.1",
+    "helmet": "^8.1.0",
+    "leaflet": "^1.9.4",
+    "multer": "^2.0.2",
+    "sharp": "^0.35.4"
+  },
+  "license": "MIT"
+}

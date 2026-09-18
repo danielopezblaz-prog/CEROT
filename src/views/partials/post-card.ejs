@@ -1,0 +1,50 @@
+<% const isSupported = locals.supported && typeof supported.has === 'function' ? supported.has(post.id) : Boolean(locals.isSupported); %>
+<% const hasPoint = post.lat !== null && post.lat !== undefined && post.lng !== null && post.lng !== undefined; %>
+<article class="post-card <%= post.is_pinned ? 'is-pinned' : '' %> <%= post.is_hidden ? 'is-hidden' : '' %>">
+  <% if (post.thumb) { %>
+  <a class="post-card-media post-card-photo" href="/incidencias/<%= post.slug %>" tabindex="-1" aria-hidden="true">
+    <img src="/uploads/<%= post.thumb %>" alt="" loading="lazy" width="640" height="480">
+    <% if (post.image_count > 1) { %><span class="post-card-count"><%- icon('camera') %> <%= post.image_count %></span><% } %>
+  </a>
+  <% } else { %>
+  <a class="post-card-media post-card-cover" style="--chip: <%= post.category_color %>" href="/incidencias/<%= post.slug %>" tabindex="-1" aria-hidden="true">
+    <span class="cover-pattern"></span>
+    <span class="cover-icon"><%- categoryIcon(post.category_slug, 'icon-cover') %></span>
+    <span class="cover-label"><%- categoryIcon(post.category_slug) %> <%= post.category_name %></span>
+    <% if (hasPoint) { %>
+    <span class="map-thumb" data-map-thumb data-lat="<%= post.lat %>" data-lng="<%= post.lng %>">
+      <span class="map-pin status-<%= post.status %>"><%- pinIcon() %></span>
+      <span class="map-thumb-attr">© OpenStreetMap</span>
+    </span>
+    <% } %>
+  </a>
+  <% } %>
+  <div class="post-card-body">
+    <div class="post-card-meta">
+      <span class="status status-<%= post.status %>"><%= STATUSES[post.status].label %></span>
+      <a class="chip chip-category" style="--chip: <%= post.category_color %>" href="/incidencias?categoria=<%= post.category_slug %>"><%- categoryIcon(post.category_slug) %><%= post.category_name %></a>
+      <% if (post.type !== 'incidencia') { %><span class="chip chip-type"><%- typeIcon(post.type) %><%= TYPES[post.type].label %></span><% } %>
+      <% if (post.is_pinned) { %><span class="chip chip-pinned"><%- icon('pin') %>Fijada</span><% } %>
+      <% if (post.is_demo) { %><span class="chip chip-demo" title="Contenido de ejemplo, se puede borrar desde el panel">Ejemplo</span><% } %>
+      <% if (post.is_hidden) { %><span class="chip chip-hidden">Oculta</span><% } %>
+    </div>
+    <h3 class="post-card-title"><a href="/incidencias/<%= post.slug %>"><%= post.title %></a></h3>
+    <p class="post-card-excerpt"><%= excerpt(post.body, 150) %></p>
+    <div class="post-card-footer">
+      <div class="post-card-info">
+        <span class="post-card-author"><span class="avatar avatar-xs" style="--av: <%= avatarHue(post.author_name) %>" aria-hidden="true"><%= initials(post.author_name) %></span><%= post.author_name %></span>
+        <time datetime="<%= toIso(post.created_at) %>" title="<%= formatDateTime(post.created_at) %>"><%= timeAgo(post.created_at) %></time>
+        <% if (post.location_text) { %><span class="post-card-location"><%- icon('pin') %> <%= post.location_text %></span><% } %>
+      </div>
+      <div class="post-card-counts">
+        <form method="post" action="/incidencias/<%= post.slug %>/apoyar" class="support-form" data-support data-support-for="<%= post.id %>">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="support-btn <%= isSupported ? 'is-active' : '' %>" aria-pressed="<%= isSupported ? 'true' : 'false' %>" title="<%= isSupported ? 'Retirar apoyo' : 'Apoyar: a mí también me afecta' %>">
+            <%- icon('thumb') %> <span data-count><%= post.support_count %></span>
+          </button>
+        </form>
+        <a class="count-link" href="/incidencias/<%= post.slug %>#comentarios" title="Comentarios"><%- icon('comment') %> <%= post.comment_count %></a>
+      </div>
+    </div>
+  </div>
+</article>

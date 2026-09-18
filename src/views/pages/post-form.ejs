@@ -1,0 +1,141 @@
+<%- include('../partials/head', { useMap: true, extraScript: '/js/post-form.js' }) %>
+<div class="container container-narrow">
+  <div class="page-head">
+    <div>
+      <h1><%= mode === 'edit' ? 'Editar publicación' : 'Nueva publicación' %></h1>
+      <p class="lead">Cuenta qué pasa, dónde y desde cuándo. Cuanto más concreto, más fácil será que alguien actúe.</p>
+    </div>
+  </div>
+
+  <% if (errors.length) { %>
+  <div class="notice notice-error" role="alert">
+    <%- icon('warning') %>
+    <div><strong>Revisa estos puntos:</strong><ul><% for (const e of errors) { %><li><%= e %></li><% } %></ul></div>
+  </div>
+  <% } %>
+
+  <% if (mode === 'edit' && images.length) { %>
+    <% for (const img of images) { %>
+    <form id="borrar-foto-<%= img.id %>" method="post" action="/incidencias/<%= post.slug %>/imagenes/<%= img.id %>/eliminar" hidden><input type="hidden" name="_csrf" value="<%= csrfToken %>"></form>
+    <% } %>
+  <% } %>
+
+  <form method="post" action="<%= mode === 'edit' ? `/incidencias/${post.slug}/editar` : '/incidencias' %>" enctype="multipart/form-data" class="form card form-post" data-post-form novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <% if (mode === 'edit') { %><input type="hidden" name="visto_en" value="<%= post.updated_at %>"><% } %>
+
+    <fieldset class="field">
+      <legend>¿Qué quieres publicar?</legend>
+      <div class="segmented" role="radiogroup">
+        <% for (const t of Object.values(TYPES)) { %>
+        <label class="segmented-option">
+          <input type="radio" name="tipo" value="<%= t.key %>" <%= (values.type || 'incidencia') === t.key ? 'checked' : '' %>>
+          <span class="segmented-body"><span class="segmented-icon segmented-icon-<%= t.key %>"><%- typeIcon(t.key) %></span><strong><%= t.label %></strong><small><%= t.description %></small></span>
+        </label>
+        <% } %>
+      </div>
+    </fieldset>
+
+    <label class="field">
+      <span>Título <em class="req">*</em></span>
+      <input type="text" name="titulo" value="<%= values.title || '' %>" maxlength="140" required minlength="8" placeholder="Ej.: Farolas fundidas en la calle de Cáceres desde hace tres semanas" data-counter>
+      <small class="hint">Resume el problema en una frase clara. Incluye la calle si puedes.</small>
+    </label>
+
+    <fieldset class="field">
+      <legend><%- icon('layers') %> Categoría <em class="req">*</em></legend>
+      <div class="cat-picker" role="radiogroup">
+        <% for (const c of categories) { %>
+        <label class="cat-option">
+          <input type="radio" name="categoria" value="<%= c.slug %>" required <%= values.categorySlug === c.slug ? 'checked' : '' %>>
+          <span class="cat-tile" style="--chip: <%= c.color %>"><span class="cat-tile-icon"><%- categoryIcon(c.slug) %></span><span><%= c.name %></span></span>
+        </label>
+        <% } %>
+      </div>
+    </fieldset>
+
+    <label class="field">
+      <span>Descripción <em class="req">*</em></span>
+      <textarea name="cuerpo" rows="8" maxlength="5000" required minlength="20" placeholder="Qué ocurre, desde cuándo, a quién afecta y qué se ha hecho ya (llamadas, avisos, reclamaciones…)." data-counter><%= values.body || '' %></textarea>
+      <small class="hint">Puedes pegar enlaces. No incluyas datos personales de terceros.</small>
+    </label>
+
+    <fieldset class="field">
+      <legend><%- icon('pin') %> Ubicación</legend>
+      <input type="text" name="ubicacion" value="<%= values.locationText || '' %>" maxlength="160" placeholder="Calle y número, plaza, parque, portal…" aria-label="Dirección o referencia">
+      <div class="location-picker">
+        <div class="location-search">
+          <input type="search" placeholder="Buscar una dirección en el mapa…" aria-label="Buscar dirección" data-geocode-input>
+          <button type="button" class="btn btn-ghost btn-sm" data-geocode-btn><%- icon('search') %> Buscar</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-geolocate><%- icon('location') %> Usar mi ubicación</button>
+        </div>
+        <div id="mapa-selector" class="map map-picker" data-map-picker data-lat="<%= values.lat ?? map.lat %>" data-lng="<%= values.lng ?? map.lng %>" data-zoom="<%= values.lat ? 17 : map.zoom %>" data-has-point="<%= values.lat ? '1' : '0' %>" aria-label="Selector de ubicación en el mapa"></div>
+        <div class="location-status">
+          <span data-location-status><%= values.lat ? 'Ubicación marcada en el mapa.' : 'Toca el mapa para marcar el punto exacto (opcional pero muy útil).' %></span>
+          <button type="button" class="link-btn" data-clear-point <%= values.lat ? '' : 'hidden' %>>Quitar marcador</button>
+        </div>
+        <input type="hidden" name="lat" value="<%= values.lat ?? '' %>" data-lat-input>
+        <input type="hidden" name="lng" value="<%= values.lng ?? '' %>" data-lng-input>
+      </div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend><%- icon('camera') %> Fotos <small class="muted">(hasta <%= maxImages %>, máx. <%= maxMb %> MB cada una)</small></legend>
+      <% if (mode === 'edit' && images.length) { %>
+      <div class="image-manage">
+        <% for (const img of images) { %>
+        <figure class="image-thumb">
+          <img src="/uploads/<%= img.thumb || img.filename %>" alt="">
+          <button type="submit" form="borrar-foto-<%= img.id %>" class="image-remove" data-confirm="¿Eliminar esta foto?" title="Eliminar foto"><%- icon('x') %></button>
+        </figure>
+        <% } %>
+      </div>
+      <% } %>
+      <% const remaining = Math.max(0, maxImages - (mode === 'edit' ? images.length : 0)); %>
+      <% if (remaining > 0) { %>
+      <label class="file-drop" data-file-drop>
+        <input type="file" name="imagenes" accept="image/jpeg,image/png,image/webp,image/gif" multiple data-max="<%= remaining %>" data-max-mb="<%= maxMb %>">
+        <span class="file-drop-text"><%- icon('image', 'icon-lg') %><strong>Añadir fotos</strong><small>Haz clic o arrastra hasta <%= remaining %> imágenes. Una foto multiplica el impacto.</small></span>
+      </label>
+      <div class="file-preview" data-file-preview></div>
+      <% } else { %>
+      <p class="muted small">Has alcanzado el máximo de fotos. Elimina alguna para subir otra.</p>
+      <% } %>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend><%- icon('building') %> Seguimiento oficial</legend>
+      <label class="field">
+        <span>Organismo responsable</span>
+        <select name="organismo">
+          <option value="">No lo sé / no aplica</option>
+          <% for (const e of ENTITIES) { %><option value="<%= e %>" <%= values.responsibleEntity === e ? 'selected' : '' %>><%= e %></option><% } %>
+        </select>
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" name="reclamacion_oficial" value="1" <%= values.officialClaim ? 'checked' : '' %> data-toggle-target="#datos-reclamacion">
+        <span>Ya he presentado una reclamación, aviso o solicitud oficial</span>
+      </label>
+      <div id="datos-reclamacion" class="claim-fields" <%= values.officialClaim ? '' : 'hidden' %>>
+        <div class="grid-2 gap">
+          <label class="field">
+            <span>Nº de registro, expediente o aviso</span>
+            <input type="text" name="referencia" value="<%= values.officialReference || '' %>" maxlength="60" placeholder="Ej.: REG-2026-014382">
+          </label>
+          <label class="field">
+            <span>Fecha de presentación</span>
+            <input type="date" name="fecha_reclamacion" value="<%= values.officialClaimDate || '' %>">
+          </label>
+        </div>
+        <% if (mode !== 'edit') { %><small class="hint">La publicación se marcará automáticamente como «En trámite».</small><% } %>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="<%= mode === 'edit' ? `/incidencias/${post.slug}` : '/incidencias' %>">Cancelar</a>
+      <button type="submit" class="btn btn-accent btn-lg"><%- icon('check') %> <%= mode === 'edit' ? 'Guardar cambios' : 'Publicar' %></button>
+    </div>
+    <p class="muted small">Al publicar aceptas las <a href="/normas">normas de la comunidad</a>. El contenido es público y visible sin necesidad de registro.</p>
+  </form>
+</div>
+<%- include('../partials/foot', { useMap: true, extraScript: '/js/post-form.js' }) %>

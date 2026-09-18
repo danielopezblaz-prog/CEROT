@@ -1,0 +1,44 @@
+# Proxy con HTTPS automático para el foro.
+#
+# Caddy pide el certificado a Let's Encrypt él solo la primera vez que arranca y
+# lo renueva sin que nadie se acuerde. Lo único que necesita es que el dominio
+# apunte ya a la IP de este servidor y que los puertos 80 y 443 estén abiertos.
+#
+# El dominio se define en el fichero .env, en la variable DOMINIO
+# (por ejemplo: DOMINIO=veredadelosestudiantes.es, sin https:// y sin barra).
+
+# Quien escriba "www." acaba en la dirección buena. Una sola dirección para todo
+# el barrio evita que los enlaces compartidos se dupliquen.
+www.{$DOMINIO} {
+	redir https://{$DOMINIO}{uri} permanent
+}
+
+{$DOMINIO} {
+	# Los avisos en vivo son una conexión que no termina nunca. Si un proxy la
+	# guarda en un búfer para comprimirla, los comentarios y los cambios de
+	# estado llegan tarde o no llegan. Por eso este camino va aparte.
+	@directo path /api/eventos
+	handle @directo {
+		reverse_proxy foro:3000 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		encode zstd gzip
+		reverse_proxy foro:3000
+	}
+
+	# El foro ya manda sus propias cabeceras de seguridad (Helmet); aquí solo se
+	# quita la firma del servidor, que no le hace falta a nadie.
+	header {
+		-Server
+	}
+
+	log {
+		output file /var/log/caddy/acceso.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}

@@ -1,0 +1,167 @@
+<%- include('../partials/head', { useMap: true, bodyClass: 'page-home' }) %>
+<section class="hero">
+  <div class="container hero-inner">
+    <div class="hero-text">
+      <p class="eyebrow"><%- icon('megaphone') %> Plataforma vecinal independiente · <%= site.municipality %></p>
+      <h1>Lo que pasa en <em><%= site.name %></em>, contado por sus vecinos.</h1>
+      <p class="lead">Publica las incidencias y gestiones pendientes del barrio, apoya las de otros vecinos y genera informes con datos para que el Ayuntamiento no pueda mirar hacia otro lado.</p>
+      <div class="hero-actions">
+        <a class="btn btn-accent btn-lg" href="/incidencias/nueva"><%- icon('plus') %> Publicar una incidencia</a>
+        <a class="btn btn-outline-light btn-lg" href="/incidencias">Ver publicaciones <%- icon('arrow-right') %></a>
+      </div>
+    </div>
+    <div class="hero-stats" aria-label="Resumen del barrio">
+      <a class="stat-tile" href="/incidencias?estado=pendientes">
+        <span class="stat-icon"><%- icon('warning') %></span>
+        <span class="stat-value"><%= number(stats.pendientes) %></span>
+        <span class="stat-label">Pendientes de resolver</span>
+      </a>
+      <a class="stat-tile" href="/incidencias?estado=resuelta">
+        <span class="stat-icon"><%- icon('check') %></span>
+        <span class="stat-value"><%= number(stats.resuelta) %></span>
+        <span class="stat-label">Resueltas</span>
+      </a>
+      <div class="stat-tile">
+        <span class="stat-icon"><%- icon('thumb') %></span>
+        <span class="stat-value"><%= number(stats.supports) %></span>
+        <span class="stat-label">Apoyos vecinales</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-icon"><%- icon('users') %></span>
+        <span class="stat-value"><%= number(stats.users) %></span>
+        <span class="stat-label">Vecinos registrados</span>
+      </div>
+      <% if (stats.pendingOver30 > 0) { %>
+      <a class="stat-alert" href="/incidencias?estado=pendientes&orden=antiguas"><%- icon('clock') %> <strong><%= stats.pendingOver30 %></strong> llevan más de 30 días sin resolverse</a>
+      <% } %>
+    </div>
+  </div>
+  <div class="hero-skyline" aria-hidden="true"></div>
+</section>
+
+<div class="container">
+  <section class="section">
+    <div class="section-head">
+      <h2>Últimas publicaciones</h2>
+      <a class="link-more" href="/incidencias">Ver todas <%- icon('arrow-right') %></a>
+    </div>
+    <% if (latest.length) { %>
+    <div class="post-grid" data-live-list="publicaciones">
+      <% for (const post of latest) { %><%- include('../partials/post-card', { post, supported }) %><% } %>
+    </div>
+    <% } else { %>
+    <div class="empty">
+      <%- icon('sparkles', 'icon-lg') %>
+      <h3>Todavía no hay publicaciones</h3>
+      <p>Sé la primera persona en contar qué pasa en el barrio.</p>
+      <a class="btn btn-primary" href="/incidencias/nueva">Publicar</a>
+    </div>
+    <% } %>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Explora por categoría</h2>
+      <a class="link-more" href="/estadisticas">Ver estadísticas <%- icon('arrow-right') %></a>
+    </div>
+    <div class="category-grid">
+      <% for (const c of categories) { %>
+      <% const cc = cats.find((x) => x.id === c.id) || { total: 0, pendientes: 0 }; %>
+      <a href="/incidencias?categoria=<%= c.slug %>" class="category-tile" style="--chip: <%= c.color %>">
+        <span class="category-tile-icon"><%- categoryIcon(c.slug) %></span>
+        <span class="category-tile-body">
+          <span class="category-tile-name"><%= c.name %></span>
+          <span class="category-tile-count"><% if (cc.pendientes > 0) { %><strong><%= cc.pendientes %></strong> <%= plural(cc.pendientes, 'pendiente', 'pendientes') %><% } else if (cc.total > 0) { %>todo resuelto<% } else { %>sin publicaciones<% } %></span>
+        </span>
+      </a>
+      <% } %>
+    </div>
+  </section>
+
+  <section class="section grid-2">
+    <div class="card">
+      <div class="section-head">
+        <h2><%- icon('trending') %> Las más apoyadas sin resolver</h2>
+        <a class="link-more" href="/incidencias?estado=pendientes&orden=apoyos">Ver más</a>
+      </div>
+      <% if (top.length) { %>
+      <ol class="ranked-list">
+        <% top.forEach((post, i) => { %>
+        <li>
+          <span class="rank"><%= i + 1 %></span>
+          <div class="ranked-body">
+            <a href="/incidencias/<%= post.slug %>"><%= post.title %></a>
+            <span class="meta"><span class="status status-<%= post.status %> status-sm"><%= STATUSES[post.status].label %></span> <span class="meta-cat" style="--chip: <%= post.category_color %>"><%- categoryIcon(post.category_slug) %> <%= post.category_name %></span> · <%= timeAgo(post.created_at) %></span>
+          </div>
+          <span class="ranked-count" title="Apoyos"><%- icon('thumb') %> <%= post.support_count %></span>
+        </li>
+        <% }) %>
+      </ol>
+      <% } else { %><p class="muted">Aún no hay incidencias pendientes con apoyos.</p><% } %>
+    </div>
+    <div class="card map-card">
+      <div class="section-head">
+        <h2><%- icon('map') %> Mapa del barrio</h2>
+        <a class="link-more" href="/mapa">Abrir mapa completo <%- icon('arrow-right') %></a>
+      </div>
+      <div id="mapa" class="map map-home" data-map-markers="/api/marcadores?estado=pendientes" data-lat="<%= map.lat %>" data-lng="<%= map.lng %>" data-zoom="<%= map.zoom %>" aria-label="Mapa con las incidencias pendientes"></div>
+      <div class="map-legend map-legend-sm" aria-label="Leyenda">
+        <% for (const s of Object.values(STATUSES)) { %><span class="legend-item"><span class="legend-pin" style="--dot: <%= s.color %>"><%- pinIcon() %></span><%= s.label %></span><% } %>
+      </div>
+    </div>
+  </section>
+
+  <% if (businessCount > 0) { %>
+  <section class="section">
+    <div class="section-head">
+      <h2><%- icon('store') %> Comercio del barrio</h2>
+      <a class="link-more" href="/negocios"><%= number(businessCount) %> <%= plural(businessCount, 'negocio', 'negocios') %> en el directorio <%- icon('arrow-right') %></a>
+    </div>
+    <% if (offers.length) { %>
+    <div class="offer-grid">
+      <% for (const offer of offers) { %><%- include('../partials/offer-card', { offer }) %><% } %>
+    </div>
+    <p class="home-offers-more"><a class="btn btn-ghost" href="/negocios/ofertas"><%- icon('tag') %> Ver las <%= number(offersCount) %> <%= plural(offersCount, 'oferta y evento', 'ofertas y eventos') %> de hoy</a></p>
+    <% } else { %>
+    <div class="biz-cta card">
+      <div>
+        <h3>Los comercios del barrio, en un solo sitio</h3>
+        <p>Consulta horarios, teléfonos y ubicación de las tiendas, bares y servicios de <%= site.name %>. Si tienes un negocio, date de alta gratis y publica tus ofertas.</p>
+      </div>
+      <a class="btn btn-accent" href="/negocios"><%- icon('store') %> Ver los negocios</a>
+    </div>
+    <% } %>
+  </section>
+  <% } %>
+
+  <section class="section how">
+    <div class="section-head section-head-center">
+      <h2>Cómo funciona</h2>
+      <p class="lead">Cuatro pasos para que un problema del barrio deje de ser invisible.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <span class="step-icon step-icon-1"><%- icon('camera') %></span>
+        <h3><span class="step-num">1</span> Publica lo que pasa</h3>
+        <p>Describe el problema, sitúalo en el mapa y añade fotos. Cuanto más concreto, mejor.</p>
+      </div>
+      <div class="step">
+        <span class="step-icon step-icon-2"><%- icon('share') %></span>
+        <h3><span class="step-num">2</span> Apoya y comparte</h3>
+        <p>Si a ti también te afecta, dale tu apoyo y compártelo por WhatsApp con tus vecinos.</p>
+      </div>
+      <div class="step">
+        <span class="step-icon step-icon-3"><%- icon('building') %></span>
+        <h3><span class="step-num">3</span> Reclama oficialmente</h3>
+        <p>Presenta la queja por los <a href="/recursos">canales oficiales</a> y anota aquí el número de expediente para hacer seguimiento.</p>
+      </div>
+      <div class="step">
+        <span class="step-icon step-icon-4"><%- icon('chart') %></span>
+        <h3><span class="step-num">4</span> Presenta el informe</h3>
+        <p>Genera un <a href="/informe">informe con datos</a> para llevarlo al Ayuntamiento, a los medios o al Pleno.</p>
+      </div>
+    </div>
+  </section>
+</div>
+<script type="application/json" id="category-icons"><%- categoryIconJson %></script>
+<%- include('../partials/foot', { useMap: true }) %>

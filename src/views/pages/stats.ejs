@@ -1,0 +1,135 @@
+<%- include('../partials/head', { bodyClass: 'page-stats' }) %>
+<div class="container">
+  <div class="page-head">
+    <div>
+      <h1>Estado del barrio</h1>
+      <p class="lead">Cifras actualizadas al momento con todo lo publicado por los vecinos. Datos abiertos también en <a href="/api/estadisticas">formato JSON</a>.</p>
+    </div>
+    <a class="btn btn-primary" href="/informe"><%- icon('file') %> Generar informe</a>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><span class="tile-icon"><%- icon('layers') %></span><span class="tile-value"><%= number(stats.total) %></span><span class="tile-label">Publicaciones</span></div>
+    <div class="tile tile-warn"><span class="tile-icon"><%- icon('warning') %></span><span class="tile-value"><%= number(stats.pendientes) %></span><span class="tile-label">Pendientes (abiertas + en trámite)</span></div>
+    <div class="tile tile-ok"><span class="tile-icon"><%- icon('check') %></span><span class="tile-value"><%= number(stats.resuelta) %></span><span class="tile-label">Resueltas</span></div>
+    <div class="tile"><span class="tile-icon"><%- icon('target') %></span><span class="tile-value"><%= stats.resolutionRate %>%</span><span class="tile-label">Tasa de resolución</span></div>
+    <div class="tile"><span class="tile-icon"><%- icon('clock') %></span><span class="tile-value"><%= stats.avgResolutionDays != null ? stats.avgResolutionDays : '—' %></span><span class="tile-label">Días de media hasta resolver</span></div>
+    <div class="tile tile-danger"><span class="tile-icon"><%- icon('bell') %></span><span class="tile-value"><%= stats.oldestOpenDays != null ? stats.oldestOpenDays : '—' %></span><span class="tile-label">Días lleva la más antigua sin resolver</span></div>
+    <div class="tile"><span class="tile-icon"><%- icon('calendar') %></span><span class="tile-value"><%= number(stats.last30Days) %></span><span class="tile-label">Publicadas en los últimos 30 días</span></div>
+    <div class="tile"><span class="tile-icon"><%- icon('file') %></span><span class="tile-value"><%= number(stats.withReference) %></span><span class="tile-label">Con reclamación oficial registrada</span></div>
+  </div>
+
+  <div class="grid-2 section">
+    <div class="card">
+      <h2>Por estado</h2>
+      <% const totalStatus = Math.max(1, byStatus.reduce((a, s) => a + s.count, 0)); %>
+      <% const R = 54, C = 2 * Math.PI * R; let acc = 0; %>
+      <div class="donut-wrap">
+        <svg class="donut" viewBox="0 0 160 160" role="img" aria-label="Distribución por estado">
+          <circle cx="80" cy="80" r="<%= R %>" fill="none" stroke="#eef2f0" stroke-width="22"></circle>
+          <% for (const s of byStatus) { const len = (s.count / totalStatus) * C; %>
+          <circle cx="80" cy="80" r="<%= R %>" fill="none" stroke="<%= s.color %>" stroke-width="22" stroke-dasharray="<%= len.toFixed(2) %> <%= (C - len).toFixed(2) %>" stroke-dashoffset="<%= (-acc).toFixed(2) %>" transform="rotate(-90 80 80)"><title><%= s.label %>: <%= s.count %></title></circle>
+          <% acc += len; } %>
+          <text x="80" y="76" text-anchor="middle" class="donut-value"><%= stats.resolutionRate %>%</text>
+          <text x="80" y="96" text-anchor="middle" class="donut-label">resueltas</text>
+        </svg>
+        <ul class="bars">
+          <% for (const s of byStatus) { %>
+          <li class="bar-row">
+            <span class="bar-label"><span class="status status-<%= s.key %> status-sm"><%= s.label %></span></span>
+            <span class="bar-track"><span class="bar-fill" style="width: <%= Math.round((s.count / totalStatus) * 100) %>%; --bar: <%= s.color %>"></span></span>
+            <span class="bar-value"><%= s.count %> <small>(<%= Math.round((s.count / totalStatus) * 100) %>%)</small></span>
+          </li>
+          <% } %>
+        </ul>
+      </div>
+      <h2 class="mt">Por tipo</h2>
+      <ul class="bars">
+        <% for (const t of byType) { %>
+        <li class="bar-row">
+          <span class="bar-label"><%- typeIcon(t.key) %> <%= t.plural %></span>
+          <span class="bar-track"><span class="bar-fill" style="width: <%= Math.round((t.count / totalStatus) * 100) %>%; --bar: var(--green-500)"></span></span>
+          <span class="bar-value"><%= t.count %></span>
+        </li>
+        <% } %>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Evolución mensual</h2>
+      <p class="muted small">Publicadas frente a resueltas en los últimos 12 meses.</p>
+      <% const W = 720, H = 240, padL = 34, padB = 30, padT = 12, innerH = H - padT - padB; %>
+      <% const maxV = Math.max(1, ...byMonth.map((m) => Math.max(m.created, m.resolved))); const slot = (W - padL) / byMonth.length; const bw = Math.min(20, slot * 0.34); %>
+      <svg viewBox="0 0 <%= W %> <%= H %>" class="chart-svg" role="img" aria-label="Publicaciones creadas y resueltas por mes">
+        <% for (let g = 0; g <= 4; g += 1) { const y = padT + innerH * (1 - g / 4); %>
+        <line x1="<%= padL %>" x2="<%= W %>" y1="<%= y %>" y2="<%= y %>" class="chart-grid"></line>
+        <text x="<%= padL - 6 %>" y="<%= y + 4 %>" class="chart-axis" text-anchor="end"><%= Math.round((maxV * g) / 4) %></text>
+        <% } %>
+        <% byMonth.forEach((m, i) => { const x = padL + slot * i + slot / 2; const hC = (innerH * m.created) / maxV; const hR = (innerH * m.resolved) / maxV; %>
+        <rect x="<%= (x - bw - 1.5).toFixed(1) %>" y="<%= (H - padB - hC).toFixed(1) %>" width="<%= bw.toFixed(1) %>" height="<%= hC.toFixed(1) %>" rx="3" class="chart-bar chart-bar-created"><title><%= m.label %>: <%= m.created %> publicadas</title></rect>
+        <rect x="<%= (x + 1.5).toFixed(1) %>" y="<%= (H - padB - hR).toFixed(1) %>" width="<%= bw.toFixed(1) %>" height="<%= hR.toFixed(1) %>" rx="3" class="chart-bar chart-bar-resolved"><title><%= m.label %>: <%= m.resolved %> resueltas</title></rect>
+        <text x="<%= x.toFixed(1) %>" y="<%= H - 9 %>" class="chart-axis" text-anchor="middle"><%= m.label %></text>
+        <% }) %>
+      </svg>
+      <div class="chart-legend"><span><i class="swatch swatch-created"></i> Publicadas</span><span><i class="swatch swatch-resolved"></i> Resueltas</span></div>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2>Por categoría</h2>
+    <% const maxCat = Math.max(1, ...byCategory.map((c) => c.total)); %>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Categoría</th><th class="num">Total</th><th class="num">Pendientes</th><th class="num">Resueltas</th><th class="num">Apoyos</th><th class="bar-col">Volumen</th></tr></thead>
+        <tbody>
+          <% for (const c of byCategory) { %>
+          <tr>
+            <td><a class="cat-link" href="/incidencias?categoria=<%= c.slug %>"><span class="cat-mini" style="--chip: <%= c.color %>"><%- categoryIcon(c.slug) %></span><%= c.name %></a></td>
+            <td class="num"><%= c.total %></td>
+            <td class="num"><%= c.pendientes %></td>
+            <td class="num"><%= c.resueltas %></td>
+            <td class="num"><%= c.supports %></td>
+            <td class="bar-col"><span class="bar-track"><span class="bar-fill" style="width: <%= Math.round((c.total / maxCat) * 100) %>%; --bar: <%= c.color %>"></span></span></td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2 section">
+    <div class="card">
+      <h2><%- icon('trending') %> Las más apoyadas sin resolver</h2>
+      <% if (topOpen.length) { %>
+      <ol class="ranked-list">
+        <% topOpen.forEach((p, i) => { %>
+        <li><span class="rank"><%= i + 1 %></span><div class="ranked-body"><a href="/incidencias/<%= p.slug %>"><%= p.title %></a><span class="meta"><span class="status status-<%= p.status %> status-sm"><%= STATUSES[p.status].label %></span> · <%= timeAgo(p.created_at) %></span></div><span class="ranked-count"><%- icon('thumb') %> <%= p.support_count %></span></li>
+        <% }) %>
+      </ol>
+      <% } else { %><p class="muted">No hay incidencias pendientes.</p><% } %>
+    </div>
+    <div class="card">
+      <h2><%- icon('bell') %> Las más antiguas sin resolver</h2>
+      <% if (oldestOpen.length) { %>
+      <ol class="ranked-list">
+        <% oldestOpen.forEach((p, i) => { %>
+        <li><span class="rank rank-danger"><%= i + 1 %></span><div class="ranked-body"><a href="/incidencias/<%= p.slug %>"><%= p.title %></a><span class="meta"><span class="status status-<%= p.status %> status-sm"><%= STATUSES[p.status].label %></span> · publicada el <%= formatDate(p.created_at) %></span></div><span class="ranked-count" title="Días abierta"><%- icon('clock') %> <%= Math.max(0, Math.floor((Date.now() - new Date(toIso(p.created_at)).getTime()) / 86400000)) %> d</span></li>
+        <% }) %>
+      </ol>
+      <% } else { %><p class="muted">No hay incidencias pendientes.</p><% } %>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h2><%- icon('building') %> Por organismo responsable</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Organismo</th><th class="num">Publicaciones</th><th class="num">Pendientes</th></tr></thead>
+        <tbody>
+          <% for (const e of byEntity) { %><tr><td><%= e.entity %></td><td class="num"><%= e.total %></td><td class="num"><%= e.pendientes %></td></tr><% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<%- include('../partials/foot') %>

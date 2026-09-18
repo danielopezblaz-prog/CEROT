@@ -1,0 +1,56 @@
+{
+  "id": "/",
+  "name": "Foro Vecinal Vereda de los Estudiantes",
+  "short_name": "Vereda",
+  "description": "Publica, apoya y da visibilidad a lo que pasa en el barrio.",
+  "start_url": "/?fuente=app",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#f4f7f5",
+  "theme_color": "#0f5c4c",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["social", "news", "government"],
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/img/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/img/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Publicar una incidencia",
+      "short_name": "Publicar",
+      "description": "Cuenta algo que pasa en el barrio",
+      "url": "/incidencias/nueva?fuente=acceso-directo",
+      "icons": [{ "src": "/img/atajo-publicar.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Mapa del barrio",
+      "short_name": "Mapa",
+      "description": "Ver las incidencias sobre el plano",
+      "url": "/mapa",
+      "icons": [{ "src": "/img/atajo-mapa.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Negocios y ofertas",
+      "short_name": "Negocios",
+      "description": "El comercio del barrio y sus ofertas del día",
+      "url": "/negocios",
+      "icons": [{ "src": "/img/atajo-negocios.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "share_target": {
+    "action": "/incidencias/nueva",
+    "method": "GET",
+    "params": {
+      "title": "titulo",
+      "text": "cuerpo",
+      "url": "enlace"
+    }
+  }
+}

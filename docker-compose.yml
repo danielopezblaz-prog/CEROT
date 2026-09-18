@@ -1,0 +1,46 @@
+# Foro + proxy con HTTPS, todo con un solo comando:
+#
+#   docker compose up -d --build
+#
+# El foro no asoma al exterior: solo habla con Caddy por la red interna. Quien
+# llega de internet pasa siempre por HTTPS.
+services:
+  foro:
+    build: .
+    restart: unless-stopped
+    # Sin "ports": el foro no es accesible desde fuera más que a través de Caddy.
+    expose:
+      - "3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      DATA_DIR: /data
+      TRUST_PROXY: "1"
+    volumes:
+      # Aquí viven la base de datos y las fotos de los vecinos. Es la carpeta
+      # que hay que copiar en las copias de seguridad.
+      - ./data:/data
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMINIO: ${DOMINIO:?Falta DOMINIO en el fichero .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_datos:/data
+      - caddy_config:/config
+      - ./data/logs-caddy:/var/log/caddy
+    depends_on:
+      - foro
+
+volumes:
+  # Los certificados viven aquí: si se borra este volumen, Caddy los vuelve a
+  # pedir, pero Let's Encrypt limita cuántas veces al día se puede hacer.
+  caddy_datos:
+  caddy_config:

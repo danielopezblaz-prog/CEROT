@@ -1,0 +1,19 @@
+<%- include('../partials/head') %>
+<div class="container container-narrow">
+  <article class="card prose-page">
+    <h1>Aviso legal</h1>
+    <h2>Titular</h2>
+    <p>Esta plataforma (<%= baseUrl %>) es un espacio vecinal gestionado de forma voluntaria por <strong><%= site.legalOwner || '[nombre de la asociación o persona responsable — configúralo en LEGAL_OWNER]' %></strong>. <% if (site.contactEmail) { %>Contacto: <a href="mailto:<%= site.contactEmail %>"><%= site.contactEmail %></a>.<% } %></p>
+    <h2>Naturaleza del servicio</h2>
+    <p>Se trata de una plataforma independiente de participación vecinal. No es un canal oficial del Ayuntamiento de <%= site.municipality %> ni de ninguna otra administración. Las publicaciones no constituyen reclamaciones administrativas ni generan efectos legales; para ello deben utilizarse los <a href="/recursos">canales oficiales</a>.</p>
+    <h2>Contenidos de los usuarios</h2>
+    <p>Los contenidos son publicados por sus autores, que son responsables de su veracidad y licitud y garantizan disponer de los derechos necesarios sobre los textos y fotografías que suben. La administración del foro realiza una moderación razonable a posteriori y retirará contenidos que vulneren las <a href="/normas">normas</a> o la legislación vigente en cuanto tenga conocimiento de ello. Cualquier persona puede solicitar la retirada de un contenido mediante la función «Denunciar» o escribiendo a la administración.</p>
+    <h2>Propiedad intelectual</h2>
+    <p>Cada autor conserva los derechos sobre sus publicaciones y concede a la plataforma una licencia gratuita para mostrarlas públicamente e incluirlas en los informes generados. El software de la plataforma se distribuye bajo licencia MIT.</p>
+    <h2>Enlaces externos</h2>
+    <p>Los enlaces a sitios de terceros (administraciones, mapas de OpenStreetMap, redes sociales) se ofrecen como ayuda; no somos responsables de su contenido ni de su disponibilidad.</p>
+    <h2>Limitación de responsabilidad</h2>
+    <p>El servicio se presta «tal cual», sin garantía de disponibilidad continua. No nos hacemos responsables de los daños derivados del uso de la información publicada por los usuarios.</p>
+  </article>
+</div>
+<%- include('../partials/foot') %>

@@ -1,0 +1,36 @@
+<% const t = OFFER_TYPES[offer.type] || OFFER_TYPES.oferta; %>
+<% const cat = BUSINESS_CATEGORY_MAP[offer.business_category] || { name: '', color: '#64748b' }; %>
+<% const today = isoDate(new Date()); %>
+<% const endsSoon = offer.ends_on && offer.ends_on === today; %>
+<article class="offer-card offer-<%= offer.type %>" style="--chip: <%= cat.color %>">
+  <div class="offer-card-media">
+    <% if (offer.thumb || offer.image) { %>
+      <img src="/uploads/<%= offer.thumb || offer.image %>" alt="" loading="lazy" width="640" height="430">
+    <% } else { %>
+      <span class="cover-pattern"></span>
+      <span class="cover-icon"><%- icon(t.icon, 'icon-cover') %></span>
+    <% } %>
+    <span class="offer-type"><%- icon(t.icon) %> <%= t.label %></span>
+    <% if (offer.price_text) { %><span class="offer-price"><%= offer.price_text %></span><% } %>
+  </div>
+  <div class="offer-card-body">
+    <a class="offer-biz" href="/negocios/<%= offer.business_slug %>">
+      <span class="biz-logo biz-logo-xs <%= offer.business_logo ? 'has-image' : '' %>">
+        <% if (offer.business_logo) { %><img src="/uploads/<%= offer.business_logo %>" alt="" loading="lazy" width="32" height="32"><% } else { %><%- businessIcon(offer.business_category) %><% } %>
+      </span>
+      <%= offer.business_name %>
+    </a>
+    <h3 class="offer-title"><%= offer.title %></h3>
+    <% if (offer.body) { %><p class="offer-body"><%= excerpt(offer.body, 130) %></p><% } %>
+    <div class="offer-meta">
+      <% if (offer.type === 'evento' && offer.starts_on) { %>
+        <span class="offer-when"><%- icon('calendar') %> <%= formatDate(offer.starts_on) %><% if (offer.event_time) { %> a las <%= offer.event_time %><% } %></span>
+      <% } else if (offer.ends_on) { %>
+        <span class="offer-when <%= endsSoon ? 'is-urgent' : '' %>"><%- icon('clock') %> <%= endsSoon ? 'Último día' : `Hasta el ${formatDate(offer.ends_on)}` %></span>
+      <% } else { %>
+        <span class="offer-when"><%- icon('clock') %> Sin fecha de fin</span>
+      <% } %>
+      <% if (offer.business_address) { %><span class="offer-addr"><%- icon('pin') %> <%= excerpt(offer.business_address, 34) %></span><% } %>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,39 @@
+<% const cat = BUSINESS_CATEGORY_MAP[business.category] || { name: business.category, color: '#64748b' }; %>
+<% const st = openState(parseHours(business.hours)); %>
+<% const hasPoint = business.lat !== null && business.lat !== undefined && business.lng !== null && business.lng !== undefined; %>
+<article class="biz-card <%= business.status !== 'activo' ? 'is-inactive' : '' %>" style="--chip: <%= cat.color %>">
+  <a class="biz-card-media" href="/negocios/<%= business.slug %>" tabindex="-1" aria-hidden="true">
+    <% if (business.cover_thumb || business.cover) { %>
+      <img src="/uploads/<%= business.cover_thumb || business.cover %>" alt="" loading="lazy" width="720" height="400">
+    <% } else if (business.product_thumb) { %>
+      <img src="/uploads/<%= business.product_thumb %>" alt="" loading="lazy" width="440" height="440">
+    <% } else { %>
+      <span class="cover-pattern"></span>
+      <span class="cover-icon"><%- businessIcon(business.category, 'icon-cover') %></span>
+      <% if (hasPoint) { %>
+      <span class="map-thumb" data-map-thumb data-lat="<%= business.lat %>" data-lng="<%= business.lng %>">
+        <span class="map-pin biz-pin"><%- pinIcon() %></span>
+        <span class="map-thumb-attr">© OpenStreetMap</span>
+      </span>
+      <% } %>
+    <% } %>
+    <% if (business.active_offers > 0) { %>
+    <span class="biz-card-offers"><%- icon('tag') %> <%= business.active_offers %> <%= plural(business.active_offers, 'oferta', 'ofertas') %></span>
+    <% } %>
+    <% if (st.known) { %><span class="open-badge <%= st.open ? 'is-open' : 'is-closed' %>"><span class="open-dot"></span><%= st.label %></span><% } %>
+  </a>
+  <div class="biz-card-body">
+    <span class="biz-logo <%= business.logo ? 'has-image' : '' %>">
+      <% if (business.logo) { %><img src="/uploads/<%= business.logo %>" alt="" loading="lazy" width="64" height="64"><% } else { %><%- businessIcon(business.category) %><% } %>
+    </span>
+    <h3 class="biz-card-title"><a href="/negocios/<%= business.slug %>"><%= business.name %></a></h3>
+    <span class="chip chip-category" style="--chip: <%= cat.color %>"><%- businessIcon(business.category) %><%= cat.name %></span>
+    <% if (business.status !== 'activo') { %><span class="status status-biz-<%= business.status %> status-sm"><%= BUSINESS_STATUSES[business.status].label %></span><% } %>
+    <p class="biz-card-desc"><%= business.short_desc || '' %></p>
+    <div class="biz-card-foot">
+      <% if (business.address) { %><span class="biz-card-addr"><%- icon('pin') %> <%= excerpt(business.address, 42) %></span><% } %>
+      <% if (st.known && st.detail) { %><span class="biz-card-hours"><%- icon('clock') %> <%= st.detail %></span><% } %>
+      <% if (business.product_count > 0) { %><span class="biz-card-hours"><%- icon('camera') %> <%= business.product_count %> <%= plural(business.product_count, 'producto', 'productos') %></span><% } %>
+    </div>
+  </div>
+</article>

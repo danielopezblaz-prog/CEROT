@@ -1,0 +1,52 @@
+<%- include('../partials/head', { bodyClass: 'page-auth' }) %>
+<div class="container container-auth">
+  <div class="auth-card card">
+    <h1>Crear cuenta</h1>
+    <p class="lead">Para participar en el foro necesitamos saber quién eres. Es gratis y solo lleva un minuto.</p>
+    <% if (errors.length) { %>
+    <div class="notice notice-error" role="alert"><%- icon('warning') %><div><ul><% for (const e of errors) { %><li><%= e %></li><% } %></ul></div></div>
+    <% } %>
+    <form method="post" action="/registro" class="form">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="next" value="<%= next %>">
+
+      <div class="grid-2 gap">
+        <label class="field"><span>Nombre <em class="req">*</em></span>
+          <input type="text" name="nombre" value="<%= values.firstName || '' %>" required maxlength="40" autocomplete="given-name" placeholder="Marta" autofocus>
+        </label>
+        <label class="field"><span>Apellidos <em class="req">*</em></span>
+          <input type="text" name="apellidos" value="<%= values.lastName || '' %>" required maxlength="60" autocomplete="family-name" placeholder="García López">
+        </label>
+      </div>
+      <p class="notice notice-info">
+        <%- icon('shield') %>
+        <span>En el foro aparecerás como <strong>tu nombre y la inicial del apellido</strong>, por ejemplo «Marta G.». Tus apellidos completos y tu teléfono <strong>no son públicos</strong>: solo los ve la administración del foro.</span>
+      </p>
+
+      <label class="field"><span>Teléfono <em class="req">*</em></span>
+        <input type="tel" name="telefono" value="<%= values.phone || '' %>" required maxlength="30" autocomplete="tel" placeholder="612 34 56 78">
+        <small class="hint">Nueve dígitos. Sirve para verificar que eres del barrio y para avisarte si hay un problema con tu cuenta.</small>
+      </label>
+
+      <label class="field"><span>Correo electrónico <em class="req">*</em></span>
+        <input type="email" name="email" value="<%= values.email || '' %>" required maxlength="120" autocomplete="email">
+        <small class="hint">Con él inicias sesión. No se muestra públicamente.</small>
+      </label>
+
+      <div class="grid-2 gap">
+        <label class="field"><span>Contraseña <em class="req">*</em></span>
+          <input type="password" name="contrasena" required minlength="8" autocomplete="new-password">
+          <small class="hint">Mínimo 8 caracteres.</small>
+        </label>
+        <label class="field"><span>Repite la contraseña <em class="req">*</em></span>
+          <input type="password" name="contrasena2" required minlength="8" autocomplete="new-password">
+        </label>
+      </div>
+
+      <label class="checkbox"><input type="checkbox" name="normas" value="1" required><span>He leído y acepto las <a href="/normas" target="_blank">normas de la comunidad</a> y la <a href="/privacidad" target="_blank">política de privacidad</a>.</span></label>
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Crear mi cuenta</button>
+    </form>
+    <p class="auth-alt">¿Ya tienes cuenta? <a href="/acceder<%= next && next !== '/' ? `?next=${encodeURIComponent(next)}` : '' %>">Inicia sesión</a>.</p>
+  </div>
+</div>
+<%- include('../partials/foot') %>

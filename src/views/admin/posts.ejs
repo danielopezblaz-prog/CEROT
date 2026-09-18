@@ -1,0 +1,50 @@
+<%- include('../partials/head', { bodyClass: 'page-admin' }) %>
+<div class="container">
+  <%- include('../admin/nav', { active: 'posts' }) %>
+  <div class="page-head">
+    <div><h1>Publicaciones</h1><p class="lead"><%= number(result.total) %> en total, incluidas las ocultas.</p></div>
+  </div>
+
+  <form class="filters card" method="get" action="/admin/publicaciones">
+    <div class="filters-search"><%- icon('search') %><input type="search" name="q" value="<%= q %>" placeholder="Buscar…" aria-label="Buscar"></div>
+    <label class="field-inline"><span>Estado</span>
+      <select name="estado"><option value="">Todos</option><% for (const s of Object.values(STATUSES)) { %><option value="<%= s.key %>" <%= status === s.key ? 'selected' : '' %>><%= s.label %></option><% } %></select>
+    </label>
+    <label class="checkbox"><input type="checkbox" name="demo" value="1" <%= showDemo ? 'checked' : '' %>><span>Solo ejemplos</span></label>
+    <div class="filters-actions"><button type="submit" class="btn btn-primary btn-sm">Filtrar</button><a class="btn btn-ghost btn-sm" href="/admin/publicaciones">Limpiar</a></div>
+  </form>
+
+  <div class="card table-wrap">
+    <table class="table">
+      <thead><tr><th>Publicación</th><th>Autor</th><th>Estado</th><th class="num">Apoyos</th><th>Fecha</th><th>Acciones</th></tr></thead>
+      <tbody>
+        <% for (const p of result.items) { %>
+        <tr class="<%= p.is_hidden ? 'row-hidden' : '' %>">
+          <td>
+            <a href="/incidencias/<%= p.slug %>"><%= p.title %></a>
+            <div class="meta"><span class="meta-cat" style="--chip: <%= p.category_color %>"><%- categoryIcon(p.category_slug) %> <%= p.category_name %></span> · <%= TYPES[p.type].label %>
+              <% if (p.is_pinned) { %> · <span class="chip chip-pinned">Fijada</span><% } %>
+              <% if (p.is_hidden) { %> · <span class="chip chip-hidden">Oculta</span><% } %>
+              <% if (p.is_demo) { %> · <span class="chip chip-demo">Ejemplo</span><% } %>
+            </div>
+          </td>
+          <td><%= p.author_name %></td>
+          <td><span class="status status-<%= p.status %> status-sm"><%= STATUSES[p.status].label %></span></td>
+          <td class="num"><%= p.support_count %></td>
+          <td><%= formatDate(p.created_at) %></td>
+          <td class="actions">
+            <a class="btn btn-ghost btn-sm" href="/incidencias/<%= p.slug %>/editar" title="Editar"><%- icon('edit') %></a>
+            <form method="post" action="/admin/publicaciones/<%= p.id %>/<%= p.is_hidden ? 'mostrar' : 'ocultar' %>" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="volver" value="<%= currentUrl %>"><button type="submit" class="btn btn-ghost btn-sm" title="<%= p.is_hidden ? 'Mostrar' : 'Ocultar' %>"><%- icon(p.is_hidden ? 'eye' : 'eye-off') %></button></form>
+            <form method="post" action="/admin/publicaciones/<%= p.id %>/<%= p.is_pinned ? 'desfijar' : 'fijar' %>" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="volver" value="<%= currentUrl %>"><button type="submit" class="btn btn-ghost btn-sm" title="<%= p.is_pinned ? 'Desfijar' : 'Fijar arriba' %>"><%- icon('pin') %></button></form>
+            <%- include('../partials/facebook-actions', { post: p, share: shares.get(p.id), volver: currentUrl, compact: true }) %>
+            <form method="post" action="/admin/publicaciones/<%= p.id %>/eliminar" class="inline-form" data-confirm="¿Eliminar definitivamente «<%= p.title %>»?"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="volver" value="<%= currentUrl %>"><button type="submit" class="btn btn-ghost btn-sm btn-danger-text" title="Eliminar"><%- icon('trash') %></button></form>
+          </td>
+        </tr>
+        <% } %>
+        <% if (!result.items.length) { %><tr><td colspan="6" class="muted">No hay publicaciones con esos criterios.</td></tr><% } %>
+      </tbody>
+    </table>
+  </div>
+  <%- include('../partials/pagination', { result, qs: (o) => { const p = new URLSearchParams(); if (q) p.set('q', q); if (status) p.set('estado', status); if (showDemo) p.set('demo', '1'); if (o.page > 1) p.set('pagina', o.page); const s = p.toString(); return s ? `?${s}` : ''; } }) %>
+</div>
+<%- include('../partials/foot') %>

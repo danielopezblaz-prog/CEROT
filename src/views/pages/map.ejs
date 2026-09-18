@@ -1,0 +1,46 @@
+<%- include('../partials/head', { useMap: true, bodyClass: 'page-map' }) %>
+<div class="container">
+  <div class="page-head">
+    <div>
+      <h1>Mapa del barrio</h1>
+      <p class="lead"><%= number(count) %> <%= count === 1 ? 'publicación situada' : 'publicaciones situadas' %> en el mapa<%= filters.isActive ? ' con los filtros aplicados' : '' %>. Toca un marcador para ver el detalle.</p>
+    </div>
+    <a class="btn btn-accent" href="/incidencias/nueva"><%- icon('plus') %> Publicar</a>
+  </div>
+
+  <form class="filters card" method="get" action="/mapa" data-filters>
+    <label class="field-inline"><span>Estado</span>
+      <select name="estado">
+        <option value="">Todos</option>
+        <option value="pendientes" <%= filters.status === 'pendientes' ? 'selected' : '' %>>Pendientes</option>
+        <% for (const s of Object.values(STATUSES)) { %><option value="<%= s.key %>" <%= filters.status === s.key ? 'selected' : '' %>><%= s.label %></option><% } %>
+      </select>
+    </label>
+    <label class="field-inline"><span>Categoría</span>
+      <select name="categoria">
+        <option value="">Todas</option>
+        <% for (const c of categories) { %><option value="<%= c.slug %>" <%= filters.categorySlug === c.slug ? 'selected' : '' %>><%= c.name %></option><% } %>
+      </select>
+    </label>
+    <label class="field-inline"><span>Tipo</span>
+      <select name="tipo">
+        <option value="">Todos</option>
+        <% for (const t of Object.values(TYPES)) { %><option value="<%= t.key %>" <%= filters.type === t.key ? 'selected' : '' %>><%= t.plural %></option><% } %>
+      </select>
+    </label>
+    <div class="filters-actions">
+      <button type="submit" class="btn btn-primary btn-sm"><%- icon('filter') %> Aplicar</button>
+      <% if (filters.isActive) { %><a class="btn btn-ghost btn-sm" href="/mapa">Limpiar</a><% } %>
+    </div>
+  </form>
+
+  <div class="map-legend" aria-label="Leyenda">
+    <% for (const s of Object.values(STATUSES)) { %><span class="legend-item"><span class="legend-pin" style="--dot: <%= s.color %>"><%- pinIcon() %></span><%= s.label %></span><% } %>
+    <span class="legend-item muted small">El icono de cada marcador indica la categoría.</span>
+  </div>
+
+  <div id="mapa" class="map map-full" data-map-markers="/api/marcadores<%= qs({ page: 1 }) %>" data-lat="<%= map.lat %>" data-lng="<%= map.lng %>" data-zoom="<%= map.zoom %>" data-fit="1" aria-label="Mapa de incidencias del barrio"></div>
+  <p class="muted small">Los marcadores muestran las publicaciones que tienen ubicación. Al publicar, marca el punto exacto en el mapa para que aparezca aquí.</p>
+</div>
+<script type="application/json" id="category-icons"><%- categoryIconJson %></script>
+<%- include('../partials/foot', { useMap: true }) %>

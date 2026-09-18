@@ -1,0 +1,14 @@
+<% if (result.pages > 1) { %>
+<% const cur = result.page, last = result.pages; const start = Math.max(1, cur - 2), end = Math.min(last, cur + 2); %>
+<nav class="pagination" aria-label="Paginación">
+  <a class="page-btn <%= cur <= 1 ? 'is-disabled' : '' %>" href="<%= cur > 1 ? qs({ page: cur - 1 }) || '?' : '#' %>" <%= cur <= 1 ? 'aria-disabled="true" tabindex="-1"' : '' %>><%- icon('chevron-left') %> Anterior</a>
+  <div class="page-numbers">
+    <% if (start > 1) { %><a class="page-num" href="<%= qs({ page: 1 }) || '?' %>">1</a><% if (start > 2) { %><span class="page-gap">…</span><% } %><% } %>
+    <% for (let p = start; p <= end; p += 1) { %>
+      <% if (p === cur) { %><span class="page-num is-current" aria-current="page"><%= p %></span><% } else { %><a class="page-num" href="<%= qs({ page: p }) || '?' %>"><%= p %></a><% } %>
+    <% } %>
+    <% if (end < last) { %><% if (end < last - 1) { %><span class="page-gap">…</span><% } %><a class="page-num" href="<%= qs({ page: last }) %>"><%= last %></a><% } %>
+  </div>
+  <a class="page-btn <%= cur >= last ? 'is-disabled' : '' %>" href="<%= cur < last ? qs({ page: cur + 1 }) : '#' %>" <%= cur >= last ? 'aria-disabled="true" tabindex="-1"' : '' %>>Siguiente <%- icon('chevron-right') %></a>
+</nav>
+<% } %>

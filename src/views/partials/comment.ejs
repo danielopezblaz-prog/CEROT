@@ -1,0 +1,44 @@
+<li class="comment <%= c.is_hidden ? 'is-hidden' : '' %>" id="comentario-<%= c.id %>">
+  <span class="avatar avatar-sm" style="--av: <%= avatarHue(c.author_name) %>" aria-hidden="true"><%= initials(c.author_name) %></span>
+  <div class="comment-body">
+    <div class="comment-head">
+      <strong><%= c.author_name %></strong>
+      <% if (c.author_role !== 'vecino') { %><span class="role-tag"><%= ROLES[c.author_role] %></span><% } %>
+      <% if (c.author_id === post.author_id) { %><span class="role-tag role-author">Autor/a</span><% } %>
+      <time class="meta" datetime="<%= toIso(c.created_at) %>" title="<%= formatDateTime(c.created_at) %>"><%= timeAgo(c.created_at) %></time>
+      <% if (c.is_hidden) { %><span class="chip chip-hidden">Oculto</span><% } %>
+    </div>
+    <div class="comment-text prose"><%- renderUserText(c.body) %></div>
+    <% if (user) { %>
+    <div class="comment-actions">
+      <% if (canDeleteComment(c)) { %>
+      <form method="post" action="/comentarios/<%= c.id %>/eliminar" class="inline-form" data-confirm="¿Eliminar este comentario?">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <button type="submit" class="link-btn"><%- icon('trash') %> Eliminar</button>
+      </form>
+      <% } %>
+      <% if (isMod && !c.is_hidden) { %>
+      <form method="post" action="/admin/comentarios/<%= c.id %>/ocultar" class="inline-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="volver" value="/incidencias/<%= post.slug %>#comentarios">
+        <button type="submit" class="link-btn"><%- icon('eye-off') %> Ocultar</button>
+      </form>
+      <% } else if (isMod && c.is_hidden) { %>
+      <form method="post" action="/admin/comentarios/<%= c.id %>/mostrar" class="inline-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="volver" value="/incidencias/<%= post.slug %>#comentarios">
+        <button type="submit" class="link-btn"><%- icon('eye') %> Mostrar</button>
+      </form>
+      <% } %>
+      <% if (c.author_id !== user.id) { %>
+      <details class="dropdown dropdown-sm">
+        <summary class="link-btn"><%- icon('flag') %> Denunciar</summary>
+        <form method="post" action="/comentarios/<%= c.id %>/denunciar" class="dropdown-panel">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <label class="field"><span>Motivo</span><select name="motivo"><% for (const [k, v] of Object.entries(REPORT_REASONS)) { %><option value="<%= k %>"><%= v %></option><% } %></select></label>
+          <button type="submit" class="btn btn-primary btn-sm">Enviar</button>
+        </form>
+      </details>
+      <% } %>
+    </div>
+    <% } %>
+  </div>
+</li>

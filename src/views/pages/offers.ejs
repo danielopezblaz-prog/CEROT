@@ -1,0 +1,49 @@
+<%- include('../partials/head', { bodyClass: 'page-ofertas' }) %>
+<div class="container">
+  <%- include('../partials/business-tabs', { tab: 'ofertas', businessCount, offersCount: result.total }) %>
+  <div class="page-head">
+    <div>
+      <h1>Ofertas y eventos del barrio</h1>
+      <p class="lead">Lo que ofrecen hoy los comercios de <%= site.name %>. <%= number(result.total) %> <%= plural(result.total, 'publicación vigente', 'publicaciones vigentes') %>.</p>
+    </div>
+  </div>
+
+  <div class="chips-row" role="navigation" aria-label="Filtro por tipo">
+    <a class="chip-filter <%= !filters.type ? 'is-active' : '' %>" href="<%= qs({ tipo: '', pagina: 1 }) || '/negocios/ofertas' %>">Todo</a>
+    <% for (const t of Object.values(OFFER_TYPES)) { %>
+    <a class="chip-filter <%= filters.type === t.key ? 'is-active' : '' %>" href="<%= qs({ tipo: t.key, pagina: 1 }) %>"><%- icon(t.icon) %> <%= t.plural %></a>
+    <% } %>
+  </div>
+
+  <form class="filters card" method="get" action="/negocios/ofertas" data-filters>
+    <label class="field-inline"><span>Tipo de comercio</span>
+      <select name="categoria">
+        <option value="">Todos</option>
+        <% for (const c of BUSINESS_CATEGORIES) { %><option value="<%= c.slug %>" <%= filters.category === c.slug ? 'selected' : '' %>><%= c.name %></option><% } %>
+      </select>
+    </label>
+    <% if (filters.type) { %><input type="hidden" name="tipo" value="<%= filters.type %>"><% } %>
+    <div class="filters-actions">
+      <button type="submit" class="btn btn-primary btn-sm"><%- icon('filter') %> Filtrar</button>
+      <% if (filters.isActive) { %><a class="btn btn-ghost btn-sm" href="/negocios/ofertas">Limpiar</a><% } %>
+    </div>
+  </form>
+
+  <% if (result.items.length) { %>
+  <div class="offer-grid" data-live-list="ofertas">
+    <% for (const offer of result.items) { %><%- include('../partials/offer-card', { offer }) %><% } %>
+  </div>
+  <%- include('../partials/pagination', { result, qs }) %>
+  <% } else { %>
+  <div class="empty">
+    <%- icon('tag', 'icon-lg') %>
+    <h3>No hay ofertas ni eventos ahora mismo</h3>
+    <p>Cuando los comercios del barrio publiquen sus ofertas, aparecerán aquí.</p>
+    <div class="empty-actions">
+      <a class="btn btn-ghost" href="/negocios">Ver los negocios</a>
+      <a class="btn btn-primary" href="/negocios/nuevo">Dar de alta mi negocio</a>
+    </div>
+  </div>
+  <% } %>
+</div>
+<%- include('../partials/foot') %>

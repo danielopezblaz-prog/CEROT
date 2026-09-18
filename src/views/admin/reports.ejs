@@ -1,0 +1,52 @@
+<%- include('../partials/head', { bodyClass: 'page-admin' }) %>
+<div class="container">
+  <%- include('../admin/nav', { active: 'reports' }) %>
+  <div class="page-head">
+    <div><h1>Denuncias</h1><p class="lead">Contenido señalado por los vecinos. Revisa cada caso y decide si ocultarlo.</p></div>
+  </div>
+
+  <div class="card section">
+    <h2>Pendientes <span class="count-pill"><%= pending.length %></span></h2>
+    <% if (pending.length) { %>
+    <ul class="report-list">
+      <% for (const r of pending) { %>
+      <li class="report-item">
+        <div class="report-main">
+          <div class="post-card-meta">
+            <span class="chip chip-hidden"><%= r.target_type === 'post' ? 'Publicación' : 'Comentario' %></span>
+            <span class="chip"><%= REPORT_REASONS[r.reason] || r.reason %></span>
+            <% if (r.target_hidden) { %><span class="chip chip-demo">Ya oculto</span><% } %>
+          </div>
+          <a href="/incidencias/<%= r.post_slug %>" target="_blank" rel="noopener"><%= r.target_text || '(contenido eliminado)' %></a>
+          <% if (r.details) { %><p class="muted">«<%= r.details %>»</p><% } %>
+          <span class="meta">Denunciado por <%= r.reporter_name %> · <%= formatDateTime(r.created_at) %></span>
+        </div>
+        <div class="report-actions">
+          <% if (!r.target_hidden) { %>
+          <form method="post" action="/admin/denuncias/<%= r.id %>/ocultar" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="btn btn-primary btn-sm"><%- icon('eye-off') %> Ocultar contenido</button></form>
+          <% } %>
+          <form method="post" action="/admin/denuncias/<%= r.id %>/revisar" class="inline-form"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="btn btn-ghost btn-sm"><%- icon('check') %> Marcar revisada</button></form>
+        </div>
+      </li>
+      <% } %>
+    </ul>
+    <% } else { %><p class="muted">No hay denuncias pendientes.</p><% } %>
+  </div>
+
+  <div class="card section">
+    <h2>Revisadas recientemente</h2>
+    <% if (reviewed.length) { %>
+    <div class="table-wrap">
+      <table class="table table-compact">
+        <thead><tr><th>Contenido</th><th>Motivo</th><th>Revisada por</th><th>Fecha</th></tr></thead>
+        <tbody>
+          <% for (const r of reviewed) { %>
+          <tr><td><a href="/incidencias/<%= r.post_slug %>"><%= excerpt(r.target_text || '(eliminado)', 80) %></a></td><td><%= REPORT_REASONS[r.reason] || r.reason %></td><td><%= r.reviewer_name || '—' %></td><td><%= formatDateTime(r.reviewed_at) %></td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+    <% } else { %><p class="muted">Todavía no se ha revisado ninguna.</p><% } %>
+  </div>
+</div>
+<%- include('../partials/foot') %>

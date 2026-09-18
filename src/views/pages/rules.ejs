@@ -1,0 +1,38 @@
+<%- include('../partials/head') %>
+<div class="container container-narrow">
+  <article class="card prose-page">
+    <p class="eyebrow">Convivencia</p>
+    <h1>Normas de la comunidad</h1>
+    <p class="lead">Este foro existe para que los problemas del barrio se vean y se resuelvan. Para que funcione y tenga credibilidad ante el Ayuntamiento, pedimos a todas las personas que lo usan que respeten estas normas.</p>
+
+    <h2>1. Habla del problema, no de las personas</h2>
+    <p>Critica la gestión, los servicios y las decisiones todo lo que haga falta, con datos y hechos. No se permiten insultos, amenazas ni descalificaciones personales contra vecinos, trabajadores municipales, cargos públicos ni nadie.</p>
+
+    <h2>2. Nada de datos personales de terceros</h2>
+    <p>No publiques nombres, matrículas, direcciones concretas de viviendas particulares, fotos reconocibles de personas ni cualquier dato que permita identificar a alguien sin su consentimiento. Si subes fotos, evita que aparezcan caras o pixélalas.</p>
+
+    <h2>3. Cuenta la verdad y aporta detalles</h2>
+    <p>Describe lo que has visto: dónde, cuándo y desde hace cuánto. Si tienes un número de aviso o de registro, añádelo. Las publicaciones falsas o exageradas perjudican a todo el barrio y serán retiradas.</p>
+
+    <h2>4. Una publicación por problema</h2>
+    <p>Antes de publicar, busca si ya existe una incidencia sobre lo mismo. Si existe, apóyala y añade tu información en un comentario. Así los apoyos se concentran y tienen más fuerza.</p>
+
+    <h2>5. Sin publicidad ni propaganda</h2>
+    <p>No se permite publicidad comercial, spam ni propaganda de partidos. Las propuestas y críticas políticas sobre la gestión del barrio son bienvenidas siempre que se ajusten al resto de normas.</p>
+
+    <h2>6. Fotos propias y respetuosas</h2>
+    <p>Sube solo fotos que hayas hecho tú o para las que tengas permiso. Nada de contenido violento, sexual u ofensivo.</p>
+
+    <h2>7. Emergencias, por los canales oficiales</h2>
+    <p>Este foro no está vigilado las 24 horas. Ante una emergencia llama al <strong>112</strong>; para incidencias urgentes en la vía pública, a la Policía Local (<strong>092</strong>) o al <strong>010</strong>.</p>
+
+    <h2>8. Moderación</h2>
+    <p>El equipo de moderación puede editar, ocultar o eliminar contenido que incumpla estas normas, y bloquear cuentas reincidentes. Cualquier persona puede <em>denunciar</em> una publicación o comentario desde el propio contenido. Si crees que se ha tomado una decisión injusta, escribe a la administración<% if (site.contactEmail) { %> (<a href="mailto:<%= site.contactEmail %>"><%= site.contactEmail %></a>)<% } %>.</p>
+
+    <h2>9. Independencia</h2>
+    <p>Esta plataforma la gestionan vecinos de forma voluntaria. No pertenece al Ayuntamiento ni a ningún partido. Publicar aquí <strong>no sustituye</strong> a la reclamación oficial: úsala para dar visibilidad y hacer seguimiento, y presenta la queja formal por los <a href="/recursos">canales oficiales</a>.</p>
+
+    <p class="muted small">Última actualización: septiembre de 2026.</p>
+  </article>
+</div>
+<%- include('../partials/foot') %>

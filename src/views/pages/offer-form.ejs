@@ -1,0 +1,86 @@
+<%- include('../partials/head') %>
+<div class="container container-narrow">
+  <nav class="breadcrumb" aria-label="Migas de pan">
+    <a href="/negocios">Negocios</a><span aria-hidden="true">›</span><a href="/negocios/<%= business.slug %>"><%= business.name %></a>
+  </nav>
+  <div class="page-head">
+    <div>
+      <h1><%= mode === 'edit' ? 'Editar publicación' : 'Nueva oferta o evento' %></h1>
+      <p class="lead">Aparecerá en la ficha de <strong><%= business.name %></strong> y en la portada de ofertas del barrio.</p>
+    </div>
+  </div>
+
+  <% if (errors.length) { %>
+  <div class="notice notice-error" role="alert">
+    <%- icon('warning') %>
+    <div><strong>Revisa estos puntos:</strong><ul><% for (const e of errors) { %><li><%= e %></li><% } %></ul></div>
+  </div>
+  <% } %>
+
+  <form method="post" action="<%= mode === 'edit' ? `/negocios/${business.slug}/publicaciones/${offer.id}/editar` : `/negocios/${business.slug}/publicaciones` %>" enctype="multipart/form-data" class="form card form-post" novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+    <fieldset class="field">
+      <legend>¿Qué quieres publicar?</legend>
+      <div class="segmented segmented-3" role="radiogroup">
+        <% for (const t of Object.values(OFFER_TYPES)) { %>
+        <label class="segmented-option">
+          <input type="radio" name="tipo" value="<%= t.key %>" <%= (values.type || 'oferta') === t.key ? 'checked' : '' %> data-offer-type>
+          <span class="segmented-body"><span class="segmented-icon segmented-icon-<%= t.key %>"><%- icon(t.icon) %></span><strong><%= t.label %></strong><small><%= t.description %></small></span>
+        </label>
+        <% } %>
+      </div>
+    </fieldset>
+
+    <label class="field">
+      <span>Título <em class="req">*</em></span>
+      <input type="text" name="titulo" value="<%= values.title || '' %>" maxlength="120" required minlength="4" placeholder="Ej.: Menú del día a 11 € toda la semana" data-counter>
+    </label>
+
+    <label class="field">
+      <span>Detalles</span>
+      <textarea name="cuerpo" rows="5" maxlength="1500" placeholder="Explica en qué consiste, condiciones, si hace falta reservar…" data-counter><%= values.body || '' %></textarea>
+    </label>
+
+    <label class="field">
+      <span>Precio o descuento</span>
+      <input type="text" name="precio" value="<%= values.priceText || '' %>" maxlength="60" placeholder="Ej.: 11 € · 2x1 · 20 % de descuento">
+      <small class="hint">Se muestra destacado sobre la imagen. Déjalo vacío si no aplica.</small>
+    </label>
+
+    <fieldset class="field">
+      <legend><%- icon('calendar') %> Fechas</legend>
+      <div class="grid-2 gap">
+        <label class="field">
+          <span data-date-label>Desde</span>
+          <input type="date" name="desde" value="<%= values.startsOn || '' %>">
+        </label>
+        <label class="field">
+          <span>Hasta</span>
+          <input type="date" name="hasta" value="<%= values.endsOn || '' %>">
+        </label>
+      </div>
+      <label class="field" data-event-time <%= values.type === 'evento' ? '' : 'hidden' %>>
+        <span>Hora del evento</span>
+        <input type="time" name="hora" value="<%= values.eventTime || '' %>">
+      </label>
+      <small class="hint">Si no pones fechas, la publicación se mantiene visible hasta que la elimines. Los eventos necesitan al menos la fecha.</small>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend><%- icon('camera') %> Imagen</legend>
+      <% if (mode === 'edit' && offer.thumb) { %><img class="form-preview" src="/uploads/<%= offer.thumb %>" alt="Imagen actual"><% } %>
+      <label class="file-drop" data-file-drop>
+        <input type="file" name="imagen" accept="image/jpeg,image/png,image/webp" data-max="1" data-max-mb="<%= maxMb %>">
+        <span class="file-drop-text"><%- icon('image', 'icon-lg') %><strong><%= mode === 'edit' && offer.thumb ? 'Cambiar la imagen' : 'Añadir una imagen' %></strong><small>Una foto del plato, del producto o del cartel llama mucho más la atención</small></span>
+      </label>
+      <div class="file-preview" data-file-preview></div>
+    </fieldset>
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="/negocios/<%= business.slug %>#publicaciones">Cancelar</a>
+      <button type="submit" class="btn btn-accent btn-lg"><%- icon('check') %> <%= mode === 'edit' ? 'Guardar cambios' : 'Publicar' %></button>
+    </div>
+  </form>
+</div>
+<%- include('../partials/foot') %>

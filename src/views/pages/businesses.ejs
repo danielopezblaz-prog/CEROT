@@ -1,0 +1,117 @@
+<%- include('../partials/head', { useMap: true, bodyClass: 'page-negocios' }) %>
+<section class="biz-hero">
+  <div class="container biz-hero-inner">
+    <div>
+      <p class="eyebrow"><%- icon('store') %> Comercio de barrio · <%= site.municipality %></p>
+      <h1>Los negocios de <em><%= site.name %></em></h1>
+      <p class="lead">El comercio de toda la vida y los negocios nuevos del barrio, con sus horarios, sus ofertas del día y sus eventos. Comprar aquí cerca sostiene el barrio.</p>
+      <div class="hero-actions">
+        <a class="btn btn-accent btn-lg" href="/negocios/ofertas"><%- icon('tag') %> Ver ofertas de hoy<% if (offersCount > 0) { %> <span class="btn-count"><%= offersCount %></span><% } %></a>
+        <a class="btn btn-outline-light btn-lg" href="/negocios/nuevo"><%- icon('plus') %> Dar de alta mi negocio</a>
+      </div>
+      <p class="biz-hero-note"><%- icon('info') %> El alta es gratuita y la revisa la moderación antes de publicarla.</p>
+    </div>
+    <div class="biz-hero-side">
+      <div class="biz-hero-stat"><span class="biz-hero-num"><%= number(result.total) %></span><span><%= plural(result.total, 'negocio en el directorio', 'negocios en el directorio') %></span></div>
+      <div class="biz-hero-stat"><span class="biz-hero-num"><%= number(offersCount) %></span><span><%= plural(offersCount, 'oferta o evento activo', 'ofertas y eventos activos') %></span></div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <%- include('../partials/business-tabs', { tab: 'directorio', businessCount: result.total, offersCount }) %>
+  <% if (myBusinesses.length) { %>
+  <div class="my-biz card">
+    <div class="section-head"><h2><%- icon('store') %> Mis negocios</h2><a class="link-more" href="/negocios/nuevo">Añadir otro</a></div>
+    <ul class="my-biz-list">
+      <% for (const b of myBusinesses) { %>
+      <li>
+        <a href="/negocios/<%= b.slug %>"><%= b.name %></a>
+        <span class="status status-biz-<%= b.status %> status-sm"><%= BUSINESS_STATUSES[b.status].label %></span>
+        <span class="meta"><%= b.active_offers %> <%= plural(b.active_offers, 'oferta activa', 'ofertas activas') %></span>
+        <span class="my-biz-actions">
+          <a class="btn btn-ghost btn-sm" href="/negocios/<%= b.slug %>/editar"><%- icon('edit') %> Editar ficha</a>
+          <a class="btn btn-primary btn-sm" href="/negocios/<%= b.slug %>/publicaciones/nueva"><%- icon('plus') %> Publicar oferta</a>
+        </span>
+      </li>
+      <% } %>
+    </ul>
+    <% if (myBusinesses.some((b) => b.status === 'pendiente')) { %>
+    <p class="muted small"><%- icon('info') %> Los negocios pendientes solo los ves tú. La moderación los revisa y los publica en cuanto puede.</p>
+    <% } %>
+  </div>
+  <% } %>
+
+  <div class="cat-strip" role="navigation" aria-label="Categorías de comercio">
+    <a class="cat-pill <%= !filters.category ? 'is-active' : '' %>" href="<%= qs({ categoria: '', pagina: 1 }) || '/negocios' %>"><%- icon('layers') %> Todos</a>
+    <% for (const c of BUSINESS_CATEGORIES) { %>
+      <% const n = counts[c.slug] || 0; %>
+      <% if (n > 0 || filters.category === c.slug) { %>
+      <a class="cat-pill <%= filters.category === c.slug ? 'is-active' : '' %>" style="--chip: <%= c.color %>" href="<%= qs({ categoria: c.slug, pagina: 1 }) %>"><%- businessIcon(c.slug) %> <%= c.name %> <span class="cat-pill-n"><%= n %></span></a>
+      <% } %>
+    <% } %>
+  </div>
+
+  <form class="filters card" method="get" action="/negocios" data-filters>
+    <div class="filters-search">
+      <%- icon('search') %>
+      <input type="search" name="q" value="<%= filters.q %>" placeholder="Buscar por nombre, calle o servicio…" aria-label="Buscar">
+    </div>
+    <label class="field-inline"><span>Categoría</span>
+      <select name="categoria">
+        <option value="">Todas</option>
+        <% for (const c of BUSINESS_CATEGORIES) { %><option value="<%= c.slug %>" <%= filters.category === c.slug ? 'selected' : '' %>><%= c.name %></option><% } %>
+      </select>
+    </label>
+    <label class="field-inline"><span>Orden</span>
+      <select name="orden">
+        <option value="alfabetico" <%= filters.sort === 'alfabetico' ? 'selected' : '' %>>Por nombre</option>
+        <option value="ofertas" <%= filters.sort === 'ofertas' ? 'selected' : '' %>>Con más ofertas</option>
+        <option value="recientes" <%= filters.sort === 'recientes' ? 'selected' : '' %>>Los últimos en darse de alta</option>
+        <option value="visitas" <%= filters.sort === 'visitas' ? 'selected' : '' %>>Más visitados</option>
+      </select>
+    </label>
+    <label class="checkbox"><input type="checkbox" name="ofertas" value="1" <%= filters.withOffers ? 'checked' : '' %>><span>Solo con ofertas</span></label>
+    <div class="filters-actions">
+      <button type="submit" class="btn btn-primary btn-sm"><%- icon('filter') %> Filtrar</button>
+      <% if (filters.isActive) { %><a class="btn btn-ghost btn-sm" href="/negocios">Limpiar</a><% } %>
+    </div>
+  </form>
+
+  <% if (result.items.length) { %>
+  <div class="biz-grid" data-live-list="negocios">
+    <% for (const business of result.items) { %><%- include('../partials/business-card', { business }) %><% } %>
+  </div>
+  <%- include('../partials/pagination', { result, qs }) %>
+  <% } else { %>
+  <div class="empty">
+    <%- icon('store', 'icon-lg') %>
+    <h3><%= filters.isActive ? 'Ningún negocio coincide con la búsqueda' : 'Todavía no hay negocios dados de alta' %></h3>
+    <p><%= filters.isActive ? 'Prueba a quitar algún filtro.' : '¿Tienes un negocio en el barrio o conoces uno? Date de alta, es gratis.' %></p>
+    <div class="empty-actions">
+      <% if (filters.isActive) { %><a class="btn btn-ghost" href="/negocios">Quitar filtros</a><% } %>
+      <a class="btn btn-primary" href="/negocios/nuevo">Dar de alta un negocio</a>
+    </div>
+  </div>
+  <% } %>
+
+  <% if (mapCount > 0) { %>
+  <section class="section">
+    <div class="section-head">
+      <h2><%- icon('map') %> Dónde están</h2>
+      <span class="muted small"><%= number(mapCount) %> <%= plural(mapCount, 'negocio situado', 'negocios situados') %> en el mapa</span>
+    </div>
+    <div id="mapa" class="map map-full" data-map-business="/api/negocios<%= qs({ pagina: 1, orden: '' }) %>" data-lat="<%= map.lat %>" data-lng="<%= map.lng %>" data-zoom="<%= map.zoom %>" data-fit="1" aria-label="Mapa de comercios del barrio"></div>
+  </section>
+  <% } %>
+
+  <section class="section biz-cta card">
+    <div>
+      <h2><%- icon('megaphone') %> ¿Tienes un negocio en el barrio?</h2>
+      <p>Date de alta gratis y aparece en el directorio con tu horario, tu teléfono y tu ubicación. Podrás publicar tus ofertas del día, tus eventos y tus novedades, y los vecinos las verán en la portada de ofertas. Sin cuotas y sin publicidad de terceros.</p>
+    </div>
+    <a class="btn btn-accent btn-lg" href="/negocios/nuevo"><%- icon('plus') %> Dar de alta mi negocio</a>
+  </section>
+</div>
+<script type="application/json" id="business-icons"><%- businessIconJson %></script>
+<%- include('../partials/foot', { useMap: true }) %>

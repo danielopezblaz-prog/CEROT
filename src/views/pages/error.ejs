@@ -1,0 +1,14 @@
+<%- include('../partials/head') %>
+<div class="container container-narrow">
+  <div class="card error-card">
+    <p class="error-code"><%= status %></p>
+    <h1><%= status === 404 ? 'Página no encontrada' : status === 403 ? 'Acceso no permitido' : status === 429 ? 'Demasiadas peticiones' : 'Algo ha fallado' %></h1>
+    <p class="lead"><%= message %></p>
+    <div class="empty-actions">
+      <a class="btn btn-primary" href="/">Ir a la portada</a>
+      <a class="btn btn-ghost" href="/incidencias">Ver publicaciones</a>
+    </div>
+    <% if (locals.details) { %><pre class="error-details"><%= details %></pre><% } %>
+  </div>
+</div>
+<%- include('../partials/foot') %>

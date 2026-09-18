@@ -1,0 +1,30 @@
+<%
+/* Barra inferior, solo en móvil. Es lo que hace que el foro se use como una app:
+   el pulgar llega a todo sin abrir menús. Cinco destinos como máximo, porque a
+   partir de ahí los botones se vuelven demasiado estrechos para acertar. */
+const enPerfil = isActivePath('/perfil') || isActivePath('/acceder') || isActivePath('/registro');
+const enIncidencias = isActivePath('/incidencias') && !currentPath.startsWith('/incidencias/nueva');
+%>
+<nav class="tabbar" aria-label="Secciones principales">
+  <a class="tabbar-item <%= currentPath === '/' ? 'is-active' : '' %>" href="/" <%= currentPath === '/' ? 'aria-current="page"' : '' %>>
+    <%- icon('home') %><span>Inicio</span>
+  </a>
+  <a class="tabbar-item <%= enIncidencias ? 'is-active' : '' %>" href="/incidencias" <%= enIncidencias ? 'aria-current="page"' : '' %>>
+    <%- icon('megaphone') %><span>Barrio</span>
+  </a>
+  <a class="tabbar-item tabbar-publicar" href="/incidencias/nueva">
+    <span class="tabbar-fab"><%- icon('plus') %></span><span>Publicar</span>
+  </a>
+  <a class="tabbar-item <%= isActivePath('/negocios') ? 'is-active' : '' %>" href="/negocios" <%= isActivePath('/negocios') ? 'aria-current="page"' : '' %>>
+    <%- icon('store') %><span>Negocios</span>
+  </a>
+  <% if (user) { %>
+  <a class="tabbar-item <%= enPerfil ? 'is-active' : '' %>" href="/perfil" <%= enPerfil ? 'aria-current="page"' : '' %>>
+    <span class="avatar avatar-sm" style="--av: <%= avatarHue(user.name) %>" aria-hidden="true"><%= initials(user.name) %></span><span>Mi cuenta</span>
+  </a>
+  <% } else { %>
+  <a class="tabbar-item <%= enPerfil ? 'is-active' : '' %>" href="/acceder<%= currentPath !== '/' ? `?next=${encodeURIComponent(currentUrl)}` : '' %>">
+    <%- icon('user') %><span>Entrar</span>
+  </a>
+  <% } %>
+</nav>

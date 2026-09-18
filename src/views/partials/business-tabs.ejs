@@ -1,0 +1,12 @@
+<% /* Pestañas de la sección Negocios. Requiere: tab ('directorio' u 'ofertas'). Opcional: businessCount, offersCount */ %>
+<nav class="biz-tabs" aria-label="Secciones de negocios">
+  <a class="biz-tab <%= tab === 'directorio' ? 'is-active' : '' %>" href="/negocios" <%= tab === 'directorio' ? 'aria-current="page"' : '' %>>
+    <%- icon('store') %> Comercios
+    <% if (locals.businessCount) { %><span class="biz-tab-n"><%= businessCount %></span><% } %>
+  </a>
+  <a class="biz-tab <%= tab === 'ofertas' ? 'is-active' : '' %>" href="/negocios/ofertas" <%= tab === 'ofertas' ? 'aria-current="page"' : '' %>>
+    <%- icon('tag') %> Ofertas y eventos
+    <% if (locals.offersCount) { %><span class="biz-tab-n"><%= offersCount %></span><% } %>
+  </a>
+  <a class="biz-tab biz-tab-cta" href="/negocios/nuevo"><%- icon('plus') %> Dar de alta mi negocio</a>
+</nav>

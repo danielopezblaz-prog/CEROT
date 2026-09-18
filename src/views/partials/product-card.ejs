@@ -1,0 +1,22 @@
+<% const catColor = (BUSINESS_CATEGORY_MAP[locals.productCategory || ''] || {}).color || '#0f5c4c'; %>
+<article class="product-card <%= product.is_available ? '' : 'is-unavailable' %>" style="--chip: <%= catColor %>">
+  <% if (product.image) { %>
+  <a class="product-media" href="/uploads/<%= product.image %>" data-lightbox="productos" data-caption="<%= product.name || 'Producto' %><%= product.price_text ? ` · ${product.price_text}` : '' %>">
+    <img src="/uploads/<%= product.thumb || product.image %>" alt="<%= product.name || 'Foto de producto' %>" loading="lazy" width="440" height="440">
+    <% if (product.is_featured) { %><span class="product-star" title="Destacado"><%- icon('heart') %></span><% } %>
+    <% if (!product.is_available) { %><span class="product-out">Ahora no disponible</span><% } %>
+  </a>
+  <% } else { %>
+  <span class="product-media product-media-empty">
+    <span class="cover-pattern"></span>
+    <span class="cover-icon"><%- icon('camera', 'icon-cover') %></span>
+    <% if (product.is_featured) { %><span class="product-star" title="Destacado"><%- icon('heart') %></span><% } %>
+    <% if (!product.is_available) { %><span class="product-out">Ahora no disponible</span><% } %>
+  </span>
+  <% } %>
+  <div class="product-body">
+    <h3 class="product-name"><%= product.name || 'Sin nombre' %></h3>
+    <% if (product.description) { %><p class="product-desc"><%= product.description %></p><% } %>
+    <% if (product.price_text) { %><p class="product-price"><%= product.price_text %></p><% } %>
+  </div>
+</article>

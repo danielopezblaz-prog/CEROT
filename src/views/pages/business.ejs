@@ -1,0 +1,209 @@
+<% const cat = BUSINESS_CATEGORY_MAP[business.category] || { name: business.category, color: '#64748b' }; %>
+<% const st = openState(hours); %>
+<% const rows = groupedHours(hours); %>
+<% const hasPoint = business.lat !== null && business.lat !== undefined && business.lng !== null && business.lng !== undefined; %>
+<%- include('../partials/head', { useMap: hasPoint, bodyClass: 'page-negocio' }) %>
+<div class="container">
+  <nav class="breadcrumb" aria-label="Migas de pan">
+    <a href="/negocios">Negocios del barrio</a>
+    <span aria-hidden="true">›</span>
+    <a href="/negocios?categoria=<%= business.category %>"><%= cat.name %></a>
+  </nav>
+
+  <% if (business.status !== 'activo') { %>
+  <div class="notice <%= business.status === 'pendiente' ? 'notice-warning' : 'notice-error' %>">
+    <%- icon(business.status === 'pendiente' ? 'clock' : 'eye-off') %>
+    <div>
+      <strong><%= BUSINESS_STATUSES[business.status].label %>.</strong>
+      <% if (business.status === 'pendiente') { %>
+        Solo tú y la moderación veis esta ficha. Aprovecha para completarla: cuanto mejor esté, antes se publicará.
+      <% } else { %>
+        La moderación ha retirado este negocio del directorio.<% if (business.moderation_note) { %> Motivo: «<%= business.moderation_note %>».<% } %>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+</div>
+
+<header class="biz-header" style="--chip: <%= cat.color %>">
+  <div class="biz-cover">
+    <% if (business.cover) { %><img src="/uploads/<%= business.cover %>" alt="" width="1600" height="700"><% } else { %>
+      <span class="cover-pattern"></span><span class="cover-icon"><%- businessIcon(business.category, 'icon-cover') %></span>
+    <% } %>
+  </div>
+  <div class="container biz-header-inner">
+    <span class="biz-logo biz-logo-lg <%= business.logo ? 'has-image' : '' %>">
+      <% if (business.logo) { %><img src="/uploads/<%= business.logo %>" alt="Logotipo de <%= business.name %>" width="120" height="120"><% } else { %><%- businessIcon(business.category) %><% } %>
+    </span>
+    <div class="biz-header-text">
+      <div class="biz-header-chips">
+        <a class="chip chip-category" style="--chip: <%= cat.color %>" href="/negocios?categoria=<%= business.category %>"><%- businessIcon(business.category) %><%= cat.name %></a>
+        <% if (st.known) { %><span class="open-badge <%= st.open ? 'is-open' : 'is-closed' %>"><span class="open-dot"></span><%= st.label %><% if (st.detail) { %> · <%= st.detail %><% } %></span><% } %>
+      </div>
+      <h1><%= business.name %></h1>
+      <% if (business.short_desc) { %><p class="lead"><%= business.short_desc %></p><% } %>
+    </div>
+    <div class="biz-header-actions">
+      <% if (business.phone) { %><a class="btn btn-primary" href="tel:<%= business.phone.replace(/\s+/g, '') %>"><%- icon('phone') %> Llamar</a><% } %>
+      <% if (business.whatsapp) { %><a class="btn btn-ghost btn-wa" href="https://wa.me/<%= business.whatsapp.replace(/[^\d]/g, '') %>" target="_blank" rel="noopener"><%- icon('whatsapp') %> WhatsApp</a><% } %>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="biz-layout">
+    <div class="biz-main">
+      <% if (offers.length) { %>
+      <section id="publicaciones" class="section">
+        <div class="section-head">
+          <h2><%- icon('tag') %> Ofertas, eventos y novedades</h2>
+          <% if (canManage) { %><a class="btn btn-accent btn-sm" href="/negocios/<%= business.slug %>/publicaciones/nueva"><%- icon('plus') %> Publicar</a><% } %>
+        </div>
+        <div class="offer-grid offer-grid-2">
+          <% for (const offer of offers) { %>
+          <div class="offer-wrap <%= offer.is_hidden ? 'is-hidden' : '' %>">
+            <%- include('../partials/offer-card', { offer }) %>
+            <% if (canManage) { %>
+            <div class="offer-manage">
+              <a class="btn btn-ghost btn-sm" href="/negocios/<%= business.slug %>/publicaciones/<%= offer.id %>/editar"><%- icon('edit') %> Editar</a>
+              <form method="post" action="/negocios/<%= business.slug %>/publicaciones/<%= offer.id %>/eliminar" class="inline-form" data-confirm="¿Eliminar esta publicación?">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="btn btn-ghost btn-sm btn-danger-text"><%- icon('trash') %> Eliminar</button>
+              </form>
+              <% const caducada = offer.ends_on && offer.ends_on < isoDate(new Date()); %>
+              <% if (caducada) { %><span class="chip chip-hidden">Caducada</span><% } %>
+            </div>
+            <% } %>
+          </div>
+          <% } %>
+        </div>
+      </section>
+      <% } else if (canManage) { %>
+      <section id="publicaciones" class="section">
+        <div class="empty">
+          <%- icon('tag', 'icon-lg') %>
+          <h3>Todavía no has publicado nada</h3>
+          <p>Publica tu oferta del día, un evento o una novedad. Aparecerá en la portada de ofertas del barrio.</p>
+          <a class="btn btn-accent" href="/negocios/<%= business.slug %>/publicaciones/nueva"><%- icon('plus') %> Publicar mi primera oferta</a>
+        </div>
+      </section>
+      <% } %>
+
+      <% if (products.length || canManage) { %>
+      <section id="productos" class="section">
+        <div class="section-head">
+          <h2><%- icon('camera') %> Productos<% if (products.length) { %> <span class="count-pill"><%= products.length %></span><% } %></h2>
+          <% if (canManage) { %><a class="btn btn-accent btn-sm" href="/negocios/<%= business.slug %>/productos"><%- icon('image') %> Gestionar fotos de productos</a><% } %>
+        </div>
+        <% if (products.length) { %>
+        <div class="product-grid">
+          <% for (const product of products) { %><%- include('../partials/product-card', { product, productCategory: business.category }) %><% } %>
+        </div>
+        <% } else { %>
+        <div class="empty">
+          <%- icon('camera', 'icon-lg') %>
+          <h3>Enseña lo que vendes</h3>
+          <p>Sube fotos de tus productos. Es lo primero que mira la gente y lo que más hace entrar en una tienda.</p>
+          <a class="btn btn-accent" href="/negocios/<%= business.slug %>/productos"><%- icon('plus') %> Subir fotos de productos</a>
+        </div>
+        <% } %>
+      </section>
+      <% } %>
+
+      <% if (business.description) { %>
+      <section class="card section">
+        <h2><%- icon('store') %> Sobre <%= business.name %></h2>
+        <div class="prose"><%- renderUserText(business.description) %></div>
+      </section>
+      <% } %>
+
+      <% if (images.length) { %>
+      <section class="card section">
+        <h2><%- icon('camera') %> Fotos</h2>
+        <div class="biz-gallery">
+          <% images.forEach((img, i) => { %>
+          <a class="gallery-item" href="/uploads/<%= img.filename %>" data-lightbox="galeria" data-caption="<%= business.name %>, foto <%= i + 1 %>">
+            <img src="/uploads/<%= img.thumb || img.filename %>" alt="Foto <%= i + 1 %> de <%= business.name %>" loading="lazy">
+          </a>
+          <% }) %>
+        </div>
+      </section>
+      <% } %>
+
+      <% if (hasPoint) { %>
+      <section class="card section">
+        <h2><%- icon('map') %> Cómo llegar</h2>
+        <% if (business.address) { %><p class="muted"><%- icon('pin') %> <%= business.address %></p><% } %>
+        <div id="mapa" class="map map-sm" data-map-point data-lat="<%= business.lat %>" data-lng="<%= business.lng %>" data-zoom="17" data-title="<%= business.name %>" data-status="resuelta" data-category="otros" aria-label="Mapa con la ubicación del negocio"></div>
+        <a class="btn btn-ghost btn-sm" href="https://www.openstreetmap.org/directions?to=<%= business.lat %>,<%= business.lng %>" target="_blank" rel="noopener"><%- icon('external') %> Cómo llegar en OpenStreetMap</a>
+      </section>
+      <% } %>
+    </div>
+
+    <aside class="biz-aside">
+      <% if (rows.some((r) => !r.closed)) { %>
+      <div class="card aside-card">
+        <h3><%- icon('clock') %> Horario</h3>
+        <table class="hours-table">
+          <tbody>
+            <% for (const r of rows) { %>
+            <tr class="<%= r.closed ? 'is-closed' : '' %>"><th scope="row"><%= r.label %></th><td><%= r.text %></td></tr>
+            <% } %>
+          </tbody>
+        </table>
+        <% if (st.known && st.detail) { %><p class="muted small"><%= st.detail %>.</p><% } %>
+      </div>
+      <% } %>
+
+      <div class="card aside-card">
+        <h3><%- icon('phone') %> Contacto</h3>
+        <ul class="contact-list">
+          <% if (business.address) { %><li><%- icon('pin') %><span><%= business.address %></span></li><% } %>
+          <% if (business.phone) { %><li><%- icon('phone') %><a href="tel:<%= business.phone.replace(/\s+/g, '') %>"><%= business.phone %></a></li><% } %>
+          <% if (business.whatsapp) { %><li><%- icon('whatsapp') %><a href="https://wa.me/<%= business.whatsapp.replace(/[^\d]/g, '') %>" target="_blank" rel="noopener">WhatsApp</a></li><% } %>
+          <% if (business.email) { %><li><%- icon('mail') %><a href="mailto:<%= business.email %>"><%= business.email %></a></li><% } %>
+          <% if (business.website) { %><li><%- icon('globe') %><a href="<%= business.website %>" target="_blank" rel="noopener nofollow"><%= business.website.replace(/^https?:\/\//, '').replace(/\/$/, '') %></a></li><% } %>
+          <% if (business.instagram) { %><li><%- icon('instagram') %><a href="https://instagram.com/<%= business.instagram %>" target="_blank" rel="noopener nofollow">@<%= business.instagram %></a></li><% } %>
+          <% if (business.facebook) { %><li><%- icon('facebook') %><a href="<%= business.facebook %>" target="_blank" rel="noopener nofollow">Facebook</a></li><% } %>
+          <% if (!business.address && !business.phone && !business.whatsapp && !business.email && !business.website && !business.instagram && !business.facebook) { %>
+          <li class="muted">Este negocio todavía no ha añadido datos de contacto.</li>
+          <% } %>
+        </ul>
+        <%- include('../partials/share', { shareUrl, shareTitle: business.name }) %>
+      </div>
+
+      <% if (canManage) { %>
+      <div class="card aside-card aside-manage">
+        <h3><%- icon('settings') %> Gestionar el negocio</h3>
+        <a class="btn btn-primary btn-block" href="/negocios/<%= business.slug %>/publicaciones/nueva"><%- icon('plus') %> Publicar oferta o evento</a>
+        <a class="btn btn-ghost btn-block" href="/negocios/<%= business.slug %>/productos"><%- icon('camera') %> Fotos de productos</a>
+        <a class="btn btn-ghost btn-block" href="/negocios/<%= business.slug %>/editar"><%- icon('edit') %> Editar la ficha</a>
+        <form method="post" action="/negocios/<%= business.slug %>/eliminar" data-confirm="¿Eliminar el negocio y todas sus publicaciones? No se puede deshacer.">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <% if (isMod) { %><input type="hidden" name="volver" value="admin"><% } %>
+          <button type="submit" class="btn btn-ghost btn-block btn-danger-text"><%- icon('trash') %> Eliminar el negocio</button>
+        </form>
+        <p class="muted small">Visitas de la ficha: <%= number(business.views) %>.</p>
+      </div>
+      <% } %>
+
+      <% if (related.length) { %>
+      <div class="card aside-card">
+        <h3><%- businessIcon(business.category) %> Otros en <%= cat.name %></h3>
+        <ul class="related-list">
+          <% for (const r of related) { %>
+          <li><a href="/negocios/<%= r.slug %>"><%= r.name %></a><span class="meta"><%= r.short_desc ? excerpt(r.short_desc, 60) : '' %></span></li>
+          <% } %>
+        </ul>
+      </div>
+      <% } %>
+    </aside>
+  </div>
+</div>
+<div class="lightbox" data-lightbox-root hidden>
+  <button type="button" class="lightbox-close" data-lightbox-close aria-label="Cerrar"><%- icon('x') %></button>
+  <img alt="">
+  <p class="lightbox-caption"></p>
+</div>
+<script type="application/json" id="category-icons"><%- categoryIconJson %></script>
+<%- include('../partials/foot', { useMap: hasPoint }) %>

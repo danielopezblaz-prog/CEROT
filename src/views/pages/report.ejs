@@ -1,0 +1,101 @@
+<%- include('../partials/head', { bodyClass: 'page-report' }) %>
+<div class="container">
+  <div class="report-toolbar no-print card">
+    <form method="get" action="/informe" class="filters filters-report">
+      <label class="field-inline"><span>Desde</span><input type="date" name="desde" value="<%= filters.from %>"></label>
+      <label class="field-inline"><span>Hasta</span><input type="date" name="hasta" value="<%= filters.to %>"></label>
+      <label class="field-inline"><span>Categoría</span>
+        <select name="categoria"><option value="">Todas</option><% for (const c of categories) { %><option value="<%= c.slug %>" <%= filters.categorySlug === c.slug ? 'selected' : '' %>><%= c.name %></option><% } %></select>
+      </label>
+      <label class="field-inline"><span>Estado</span>
+        <select name="estado"><option value="">Todos</option><option value="pendientes" <%= filters.status === 'pendientes' ? 'selected' : '' %>>Pendientes</option><% for (const s of Object.values(STATUSES)) { %><option value="<%= s.key %>" <%= filters.status === s.key ? 'selected' : '' %>><%= s.label %></option><% } %></select>
+      </label>
+      <label class="field-inline"><span>Tipo</span>
+        <select name="tipo"><option value="">Todos</option><% for (const t of Object.values(TYPES)) { %><option value="<%= t.key %>" <%= filters.type === t.key ? 'selected' : '' %>><%= t.plural %></option><% } %></select>
+      </label>
+      <div class="filters-actions">
+        <button type="submit" class="btn btn-primary btn-sm"><%- icon('filter') %> Aplicar</button>
+        <% if (filters.isActive) { %><a class="btn btn-ghost btn-sm" href="/informe">Limpiar</a><% } %>
+      </div>
+    </form>
+    <div class="report-buttons">
+      <button type="button" class="btn btn-accent" data-print><%- icon('print') %> Imprimir / guardar en PDF</button>
+      <a class="btn btn-ghost" href="/informe.csv<%= qs({ page: 1 }) %>"><%- icon('download') %> Descargar CSV (Excel)</a>
+    </div>
+  </div>
+
+  <article class="report card">
+    <header class="report-header">
+      <img src="/img/logo.svg" alt="" width="56" height="56">
+      <div class="report-title">
+        <p class="eyebrow">Informe vecinal</p>
+        <h1>Incidencias y gestiones pendientes en <%= site.name %></h1>
+        <p class="muted"><%= site.brand %> · <%= site.municipality %> · Generado el <%= formatLong(generatedAt) %></p>
+      </div>
+    </header>
+
+    <p class="report-intro">Este informe recoge las incidencias, propuestas y gestiones publicadas por los vecinos de <%= site.name %> en la plataforma vecinal <strong><%= baseUrl.replace(/^https?:\/\//, '') %></strong>. Cada publicación incluye fecha, ubicación, apoyos de otros vecinos y, cuando existe, el número de registro de la reclamación oficial presentada. El objetivo es facilitar al Ayuntamiento de <%= site.municipality %> y al resto de organismos responsables una visión ordenada de los problemas del barrio y de su antigüedad.</p>
+
+    <% if (filters.isActive) { %>
+    <p class="report-filters"><strong>Criterios aplicados:</strong>
+      <% if (filters.from) { %> desde el <%= formatDate(`${filters.from} 00:00:00`) %>;<% } %>
+      <% if (filters.to) { %> hasta el <%= formatDate(`${filters.to} 00:00:00`) %>;<% } %>
+      <% if (filters.category) { %> categoría «<%= filters.category.name %>»;<% } %>
+      <% if (filters.status) { %> estado «<%= filters.status === 'pendientes' ? 'Pendientes' : STATUSES[filters.status].label %>»;<% } %>
+      <% if (filters.type) { %> tipo «<%= TYPES[filters.type].plural %>»;<% } %>
+    </p>
+    <% } %>
+
+    <section class="report-summary">
+      <div class="tile"><span class="tile-value"><%= summary.total %></span><span class="tile-label">Publicaciones</span></div>
+      <div class="tile tile-danger"><span class="tile-value"><%= summary.abierta %></span><span class="tile-label">Abiertas sin respuesta</span></div>
+      <div class="tile tile-warn"><span class="tile-value"><%= summary.en_tramite %></span><span class="tile-label">En trámite oficial</span></div>
+      <div class="tile tile-ok"><span class="tile-value"><%= summary.resuelta %></span><span class="tile-label">Resueltas</span></div>
+      <div class="tile"><span class="tile-value"><%= number(summary.supports) %></span><span class="tile-label">Apoyos vecinales</span></div>
+      <div class="tile"><span class="tile-value"><%= summary.withReference %></span><span class="tile-label">Con nº de registro oficial</span></div>
+    </section>
+
+    <% if (summary.byCategory.length) { %>
+    <section>
+      <h2>Resumen por categoría</h2>
+      <table class="table table-compact">
+        <thead><tr><th>Categoría</th><th class="num">Publicaciones</th><th class="num">Pendientes</th></tr></thead>
+        <tbody><% for (const c of summary.byCategory) { %><tr><td><%= c.name %></td><td class="num"><%= c.total %></td><td class="num"><%= c.pendientes %></td></tr><% } %></tbody>
+      </table>
+    </section>
+    <% } %>
+
+    <section>
+      <h2>Relación de publicaciones <span class="muted">(<%= posts.length %>)</span></h2>
+      <% if (posts.length) { %>
+      <table class="table table-compact report-table">
+        <thead><tr><th>#</th><th>Publicación</th><th>Categoría</th><th>Estado</th><th class="num">Apoyos</th><th>Fecha</th><th>Reclamación oficial</th></tr></thead>
+        <tbody>
+          <% posts.forEach((p, i) => { %>
+          <tr>
+            <td class="num"><%= i + 1 %></td>
+            <td>
+              <strong><a href="/incidencias/<%= p.slug %>"><%= p.title %></a></strong>
+              <% if (p.location_text) { %><br><span class="muted small"><%= p.location_text %></span><% } %>
+              <br><span class="muted small report-url"><%= baseUrl.replace(/^https?:\/\//, '') %>/incidencias/<%= p.slug %></span>
+            </td>
+            <td><%= p.category_name %></td>
+            <td><span class="status status-<%= p.status %> status-sm"><%= STATUSES[p.status].label %></span><% if (p.resolved_at) { %><br><span class="muted small"><%= formatDate(p.resolved_at) %></span><% } %></td>
+            <td class="num"><%= p.support_count %></td>
+            <td><%= formatDate(p.created_at) %></td>
+            <td><% if (p.official_reference) { %><%= p.official_reference %><% } %><% if (p.official_claim_date) { %><br><span class="muted small"><%= formatDate(p.official_claim_date) %></span><% } %><% if (!p.official_reference && !p.official_claim_date) { %><span class="muted">—</span><% } %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <% } else { %>
+      <p class="muted">No hay publicaciones con los criterios seleccionados.</p>
+      <% } %>
+    </section>
+
+    <footer class="report-footer">
+      <p>Documento generado automáticamente por la plataforma vecinal <%= site.brand %> <%= site.name %> (<%= baseUrl %>). Plataforma independiente, gestionada por vecinos; no es un canal oficial del Ayuntamiento. El detalle de cada publicación, con fotos, comentarios e historial de estados, puede consultarse en el enlace indicado en cada fila.</p>
+    </footer>
+  </article>
+</div>
+<%- include('../partials/foot') %>

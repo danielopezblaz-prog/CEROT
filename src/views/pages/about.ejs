@@ -1,0 +1,36 @@
+<%- include('../partials/head') %>
+<div class="container container-narrow">
+  <article class="card prose-page">
+    <p class="eyebrow">Sobre el proyecto</p>
+    <h1>Un foro hecho por y para los vecinos de <%= site.name %></h1>
+    <p class="lead">Durante años hemos avisado, llamado, escrito y esperado. Muchas veces el problema sigue ahí. Este foro nace para que lo que pasa en el barrio quede registrado, con fecha, foto y apoyos, y para que nadie pueda decir que no lo sabía.</p>
+
+    <h2>¿Para qué sirve?</h2>
+    <ul>
+      <li><strong>Hacer visible</strong> cada incidencia, propuesta o gestión atascada, con su ubicación en el mapa.</li>
+      <li><strong>Sumar apoyos</strong>: cuando muchos vecinos dicen «a mí también me afecta», el problema deja de ser una queja aislada.</li>
+      <li><strong>Hacer seguimiento</strong> de las reclamaciones oficiales: número de registro, fecha, estado y respuesta.</li>
+      <li><strong>Generar informes</strong> con datos para llevarlos al Ayuntamiento, al Pleno, a la asociación de vecinos o a los medios.</li>
+    </ul>
+
+    <h2>¿Quién está detrás?</h2>
+    <p>Vecinos y vecinas del barrio, de forma voluntaria e independiente. No dependemos del Ayuntamiento de <%= site.municipality %> ni de ningún partido político, y no aceptamos publicidad. <% if (site.legalOwner) { %>La plataforma está gestionada por <strong><%= site.legalOwner %></strong>.<% } %></p>
+
+    <h2>¿Cómo puedo ayudar?</h2>
+    <ul>
+      <li>Publica lo que veas en tu calle y apoya lo que publiquen otros.</li>
+      <li>Comparte las publicaciones en los grupos de WhatsApp del portal, del colegio o del barrio.</li>
+      <li>Anota los números de aviso y de registro cuando reclames oficialmente.</li>
+      <li>Si tienes tiempo, ofrécete para moderar o para difundir el informe mensual.</li>
+    </ul>
+
+    <h2>Transparencia y datos</h2>
+    <p>Todo lo publicado es público y puede consultarse sin registro. Las cifras del barrio están disponibles en <a href="/estadisticas">Estado del barrio</a> y en formato abierto (<a href="/api/estadisticas">JSON</a>). Solo pedimos un correo electrónico para registrarse y evitar el spam; consulta la <a href="/privacidad">política de privacidad</a>.</p>
+
+    <% if (site.contactEmail) { %>
+    <h2>Contacto</h2>
+    <p>Escríbenos a <a href="mailto:<%= site.contactEmail %>"><%= site.contactEmail %></a>.</p>
+    <% } %>
+  </article>
+</div>
+<%- include('../partials/foot') %>

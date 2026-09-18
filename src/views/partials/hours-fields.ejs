@@ -1,0 +1,23 @@
+<fieldset class="field">
+  <legend><%- icon('clock') %> Horario</legend>
+  <p class="hint">Marca «Cerrado» en los días que no abras. Puedes indicar dos tramos, por ejemplo mañana y tarde. Si lo dejas todo cerrado, la ficha no mostrará horario.</p>
+  <div class="hours-grid">
+    <% WEEKDAYS.forEach((day, i) => { %>
+    <% const d = values.hours && values.hours[i] ? values.hours[i] : { closed: true, ranges: [] }; %>
+    <div class="hours-row <%= d.closed ? 'is-closed' : '' %>" data-hours-row>
+      <span class="hours-day"><%= day %></span>
+      <label class="checkbox hours-closed"><input type="checkbox" name="cerrado_<%= i %>" value="1" <%= d.closed ? 'checked' : '' %> data-hours-closed><span>Cerrado</span></label>
+      <div class="hours-times">
+        <label><span class="sr-only"><%= day %>, primer tramo, desde</span><input type="time" name="desde1_<%= i %>" value="<%= d.ranges[0] ? d.ranges[0][0] : '' %>"></label>
+        <span aria-hidden="true">a</span>
+        <label><span class="sr-only"><%= day %>, primer tramo, hasta</span><input type="time" name="hasta1_<%= i %>" value="<%= d.ranges[0] ? d.ranges[0][1] : '' %>"></label>
+        <span class="hours-sep" aria-hidden="true">y</span>
+        <label><span class="sr-only"><%= day %>, segundo tramo, desde</span><input type="time" name="desde2_<%= i %>" value="<%= d.ranges[1] ? d.ranges[1][0] : '' %>"></label>
+        <span aria-hidden="true">a</span>
+        <label><span class="sr-only"><%= day %>, segundo tramo, hasta</span><input type="time" name="hasta2_<%= i %>" value="<%= d.ranges[1] ? d.ranges[1][1] : '' %>"></label>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+  <button type="button" class="btn btn-ghost btn-sm" data-copy-hours><%- icon('refresh') %> Copiar el horario del lunes al resto de días laborables</button>
+</fieldset>

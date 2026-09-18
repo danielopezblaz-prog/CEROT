@@ -1,0 +1,71 @@
+<%- include('../partials/head') %>
+<div class="container">
+  <div class="page-head">
+    <div>
+      <% if (filters.category) { %>
+      <h1 class="h1-with-icon"><span class="category-tile-icon" style="--chip: <%= filters.category.color %>"><%- categoryIcon(filters.category.slug) %></span><%= filters.category.name %></h1>
+      <% } else if (filters.type) { %>
+      <h1 class="h1-with-icon"><span class="category-tile-icon"><%- typeIcon(filters.type) %></span><%= TYPES[filters.type].plural %></h1>
+      <% } else { %>
+      <h1>Publicaciones del barrio</h1>
+      <% } %>
+      <p class="lead"><%= number(result.total) %> <%= result.total === 1 ? 'publicación' : 'publicaciones' %><%= filters.isActive ? ' con los filtros aplicados' : '' %>.</p>
+    </div>
+    <a class="btn btn-accent" href="/incidencias/nueva<%= filters.categorySlug ? `?categoria=${filters.categorySlug}` : '' %>"><%- icon('plus') %> Publicar</a>
+  </div>
+
+  <div class="chips-row" role="navigation" aria-label="Filtro rápido por estado">
+    <a class="chip-filter <%= !filters.status ? 'is-active' : '' %>" href="<%= qs({ status: '', page: 1 }) || '/incidencias' %>">Todas</a>
+    <a class="chip-filter <%= filters.status === 'pendientes' ? 'is-active' : '' %>" href="<%= qs({ status: 'pendientes', page: 1 }) %>">Pendientes</a>
+    <% for (const s of Object.values(STATUSES)) { %>
+    <a class="chip-filter chip-filter-<%= s.key %> <%= filters.status === s.key ? 'is-active' : '' %>" href="<%= qs({ status: s.key, page: 1 }) %>"><span class="chip-dot" style="--dot: <%= s.color %>"></span><%= s.label %></a>
+    <% } %>
+  </div>
+
+  <form class="filters card" method="get" action="/incidencias" data-filters>
+    <div class="filters-search">
+      <%- icon('search') %>
+      <input type="search" name="q" value="<%= filters.q %>" placeholder="Buscar por texto, calle o nº de expediente…" aria-label="Buscar">
+    </div>
+    <label class="field-inline"><span>Categoría</span>
+      <select name="categoria">
+        <option value="">Todas</option>
+        <% for (const c of categories) { %><option value="<%= c.slug %>" <%= filters.categorySlug === c.slug ? 'selected' : '' %>><%= c.name %></option><% } %>
+      </select>
+    </label>
+    <label class="field-inline"><span>Tipo</span>
+      <select name="tipo">
+        <option value="">Todos</option>
+        <% for (const t of Object.values(TYPES)) { %><option value="<%= t.key %>" <%= filters.type === t.key ? 'selected' : '' %>><%= t.plural %></option><% } %>
+      </select>
+    </label>
+    <label class="field-inline"><span>Orden</span>
+      <select name="orden">
+        <% for (const s of Object.values(SORTS)) { %><option value="<%= s.key %>" <%= filters.sort === s.key ? 'selected' : '' %>><%= s.label %></option><% } %>
+      </select>
+    </label>
+    <% if (filters.status) { %><input type="hidden" name="estado" value="<%= filters.status %>"><% } %>
+    <div class="filters-actions">
+      <button type="submit" class="btn btn-primary btn-sm"><%- icon('filter') %> Filtrar</button>
+      <% if (filters.isActive) { %><a class="btn btn-ghost btn-sm" href="/incidencias">Limpiar</a><% } %>
+    </div>
+  </form>
+
+  <% if (result.items.length) { %>
+  <div class="post-grid" data-live-list="publicaciones">
+    <% for (const post of result.items) { %><%- include('../partials/post-card', { post, supported }) %><% } %>
+  </div>
+  <%- include('../partials/pagination', { result, qs }) %>
+  <% } else { %>
+  <div class="empty">
+    <%- icon('search', 'icon-lg') %>
+    <h3>No hay publicaciones que coincidan</h3>
+    <p>Prueba a cambiar los filtros o publica tú la primera.</p>
+    <div class="empty-actions">
+      <a class="btn btn-ghost" href="/incidencias">Quitar filtros</a>
+      <a class="btn btn-primary" href="/incidencias/nueva">Publicar</a>
+    </div>
+  </div>
+  <% } %>
+</div>
+<%- include('../partials/foot') %>

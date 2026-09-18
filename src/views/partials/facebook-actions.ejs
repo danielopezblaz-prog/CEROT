@@ -1,0 +1,28 @@
+<% /* Botones de compartir en Facebook. Requiere: post, share, volver. Opcional: compact */ %>
+<% const compact = Boolean(locals.compact); %>
+<% if (facebookEnabled) { %>
+  <% if (share) { %>
+    <a class="btn btn-ghost btn-sm btn-facebook is-shared" href="<%= share.external_url %>" target="_blank" rel="noopener" title="Compartida en Facebook el <%= formatDateTime(share.created_at) %>. Abrir la publicación.">
+      <%- icon('facebook') %><% if (!compact) { %> Ver en Facebook<% } %>
+    </a>
+    <details class="dropdown dropdown-left <%= compact ? 'dropdown-sm' : '' %>">
+      <summary class="btn btn-ghost btn-sm" title="Retirar de Facebook"><%- icon('x') %><% if (!compact) { %> Retirar<% } %></summary>
+      <div class="dropdown-panel">
+        <p class="small muted no-margin">Compartida el <%= formatDateTime(share.created_at) %><%= share.shared_by_name ? ` por ${share.shared_by_name}` : '' %>.</p>
+        <form method="post" action="/admin/publicaciones/<%= post.id %>/facebook/eliminar" data-confirm="¿Borrar esta publicación de la página de Facebook?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="volver" value="<%= volver %>">
+          <button type="submit" class="btn btn-ghost btn-sm btn-danger-text btn-block"><%- icon('trash') %> Borrarla de Facebook</button>
+        </form>
+        <form method="post" action="/admin/publicaciones/<%= post.id %>/facebook/olvidar" data-confirm="Se quitará del registro del foro, pero seguirá en Facebook si no la has borrado allí. ¿Continuar?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="volver" value="<%= volver %>">
+          <button type="submit" class="btn btn-ghost btn-sm btn-block">Olvidar el registro</button>
+        </form>
+      </div>
+    </details>
+  <% } else if (!post.is_hidden) { %>
+    <form method="post" action="/admin/publicaciones/<%= post.id %>/facebook" class="inline-form" data-confirm="Se publicará en la página de Facebook del foro, visible para cualquiera. ¿Continuar?">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="volver" value="<%= volver %>">
+      <button type="submit" class="btn btn-ghost btn-sm btn-facebook" title="Compartir en la página de Facebook"><%- icon('facebook') %><% if (!compact) { %> Compartir en Facebook<% } %></button>
+    </form>
+  <% } %>
+<% } %>

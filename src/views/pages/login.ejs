@@ -1,0 +1,20 @@
+<%- include('../partials/head', { bodyClass: 'page-auth' }) %>
+<div class="container container-auth">
+  <div class="auth-card card">
+    <h1>Iniciar sesión</h1>
+    <p class="lead">Entra para publicar, apoyar y comentar.</p>
+    <% if (errors.length) { %>
+    <div class="notice notice-error" role="alert"><%- icon('warning') %><div><% for (const e of errors) { %><p><%= e %></p><% } %></div></div>
+    <% } %>
+    <form method="post" action="/acceder" class="form">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="next" value="<%= next %>">
+      <label class="field"><span>Correo electrónico</span><input type="email" name="email" value="<%= values.email || '' %>" required autocomplete="email" autofocus></label>
+      <label class="field"><span>Contraseña</span><input type="password" name="contrasena" required autocomplete="current-password"></label>
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Entrar</button>
+    </form>
+    <p class="auth-alt">¿Todavía no tienes cuenta? <a href="/registro<%= next && next !== '/' ? `?next=${encodeURIComponent(next)}` : '' %>">Regístrate gratis</a>.</p>
+    <p class="muted small">¿Has olvidado la contraseña? Pide a la administración del foro que te la restablezca<% if (site.contactEmail) { %> escribiendo a <a href="mailto:<%= site.contactEmail %>"><%= site.contactEmail %></a><% } %>.</p>
+  </div>
+</div>
+<%- include('../partials/foot') %>

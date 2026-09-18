@@ -1,0 +1,221 @@
+<%- include('../partials/head', { useMap: Boolean(post.lat && post.lng), bodyClass: 'page-post' }) %>
+<% const ORDER = ['abierta', 'en_tramite', 'resuelta']; const isClosed = post.status === 'cerrada'; const currentIdx = isClosed ? 2 : ORDER.indexOf(post.status); %>
+<% const dateFor = (key) => { const h = [...history].reverse().find((x) => x.to_status === key); return h ? formatDate(h.created_at) : ''; }; %>
+<div class="container">
+  <nav class="breadcrumb" aria-label="Migas de pan">
+    <a href="/incidencias">Publicaciones</a>
+    <span aria-hidden="true">›</span>
+    <a href="/incidencias?categoria=<%= post.category_slug %>"><%= post.category_name %></a>
+  </nav>
+
+  <% if (post.is_hidden) { %>
+  <div class="notice notice-warning"><%- icon('eye-off') %> <span>Esta publicación está <strong>oculta</strong> para el resto de vecinos. Solo la ven su autor y la moderación.</span></div>
+  <% } %>
+
+  <div class="post-layout" data-live-post="<%= post.id %>" data-slug="<%= post.slug %>" data-last-comment="<%= comments.length ? comments[comments.length - 1].id : 0 %>">
+    <article class="post card">
+      <header class="post-header">
+        <div class="post-card-meta">
+          <span class="status status-<%= post.status %>" data-status-badge><%= STATUSES[post.status].label %></span>
+          <a class="chip chip-category" style="--chip: <%= post.category_color %>" href="/incidencias?categoria=<%= post.category_slug %>"><%- categoryIcon(post.category_slug) %><%= post.category_name %></a>
+          <span class="chip chip-type"><%- typeIcon(post.type) %><%= TYPES[post.type].label %></span>
+          <% if (post.is_pinned) { %><span class="chip chip-pinned"><%- icon('pin') %>Fijada</span><% } %>
+          <% if (post.is_demo) { %><span class="chip chip-demo">Ejemplo</span><% } %>
+        </div>
+        <h1 class="post-title"><%= post.title %></h1>
+        <div class="post-byline">
+          <span class="avatar" style="--av: <%= avatarHue(post.author_name) %>" aria-hidden="true"><%= initials(post.author_name) %></span>
+          <div>
+            <strong><%= post.author_name %></strong><% if (post.author_role !== 'vecino') { %> <span class="role-tag"><%= ROLES[post.author_role] %></span><% } %>
+            <div class="meta">
+              <time datetime="<%= toIso(post.created_at) %>"><%= formatDateTime(post.created_at) %></time>
+              · <span title="Visitas"><%- icon('eye') %> <%= number(post.views) %></span>
+              <% if (post.updated_at !== post.created_at) { %>· editada <%= timeAgo(post.updated_at) %><% } %>
+            </div>
+          </div>
+        </div>
+        <ol class="stepper <%= isClosed ? 'is-closed' : '' %>" aria-label="Progreso de la incidencia">
+          <% ORDER.forEach((key, i) => { const label = isClosed && i === 2 ? 'Cerrada' : STATUSES[key].label; const cls = i < currentIdx ? 'is-done' : i === currentIdx ? 'is-current' : ''; %>
+          <li class="step-item <%= cls %>">
+            <span class="step-dot"><% if (i < currentIdx) { %><%- icon('check') %><% } else { %><%= i + 1 %><% } %></span>
+            <span class="step-text"><span class="step-label"><%= label %></span><span class="step-date"><%= dateFor(isClosed && i === 2 ? 'cerrada' : key) %></span></span>
+          </li>
+          <% }) %>
+        </ol>
+      </header>
+
+      <% if (images.length) { %>
+      <div class="gallery gallery-<%= Math.min(images.length, 4) %>">
+        <% images.forEach((img, i) => { %>
+        <a class="gallery-item" href="/uploads/<%= img.filename %>" data-lightbox="galeria" data-caption="Foto <%= i + 1 %> de <%= images.length %>">
+          <img src="/uploads/<%= i === 0 ? img.filename : img.thumb || img.filename %>" alt="Foto <%= i + 1 %> de la publicación" loading="<%= i === 0 ? 'eager' : 'lazy' %>">
+          <% if (i === 0 && images.length > 1) { %><span class="gallery-count"><%- icon('camera') %> <%= images.length %> fotos</span><% } %>
+        </a>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <div class="post-body prose"><%- renderUserText(post.body) %></div>
+
+      <dl class="facts">
+        <% if (post.location_text || post.lat) { %>
+        <div class="fact"><dt><%- icon('pin') %> Ubicación</dt><dd><%= post.location_text || 'Marcada en el mapa' %><% if (post.lat && post.lng) { %> · <a href="https://www.openstreetmap.org/?mlat=<%= post.lat %>&mlon=<%= post.lng %>#map=18/<%= post.lat %>/<%= post.lng %>" target="_blank" rel="noopener">ver en OpenStreetMap <%- icon('external') %></a><% } %></dd></div>
+        <% } %>
+        <% if (post.responsible_entity) { %>
+        <div class="fact"><dt><%- icon('building') %> Organismo responsable</dt><dd><%= post.responsible_entity %></dd></div>
+        <% } %>
+        <% if (post.official_reference || post.official_claim_date) { %>
+        <div class="fact fact-highlight"><dt><%- icon('file') %> Reclamación oficial</dt><dd><% if (post.official_reference) { %>Referencia <strong><%= post.official_reference %></strong><% } %><% if (post.official_claim_date) { %><%= post.official_reference ? ' · presentada el ' : 'Presentada el ' %><%= formatDate(post.official_claim_date) %><% } %></dd></div>
+        <% } %>
+        <% if (post.resolved_at) { %>
+        <div class="fact fact-ok"><dt><%- icon('check') %> Resuelta</dt><dd><%= formatDate(post.resolved_at) %></dd></div>
+        <% } %>
+      </dl>
+
+      <% if (post.lat && post.lng) { %>
+      <div id="mapa" class="map map-sm" data-map-point data-lat="<%= post.lat %>" data-lng="<%= post.lng %>" data-zoom="17" data-title="<%= post.title %>" data-status="<%= post.status %>" data-category="<%= post.category_slug %>" aria-label="Mapa con la ubicación"></div>
+      <% } %>
+
+      <div class="post-actions">
+        <form method="post" action="/incidencias/<%= post.slug %>/apoyar" class="support-form" data-support data-support-for="<%= post.id %>">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-support <%= supported ? 'is-active' : '' %>" aria-pressed="<%= supported ? 'true' : 'false' %>">
+            <%- icon('thumb') %>
+            <span data-label><%= supported ? 'Ya lo apoyas' : 'Me afecta / lo apoyo' %></span>
+            <span class="support-count" data-count><%= post.support_count %></span>
+          </button>
+        </form>
+        <%- include('../partials/share', { shareUrl, shareTitle: post.title }) %>
+      </div>
+
+      <% if (canEdit || user) { %>
+      <div class="post-manage">
+        <% if (canEdit) { %>
+        <a class="btn btn-ghost btn-sm" href="/incidencias/<%= post.slug %>/editar"><%- icon('edit') %> Editar</a>
+        <details class="dropdown">
+          <summary class="btn btn-ghost btn-sm"><%- icon('refresh') %> Cambiar estado</summary>
+          <form method="post" action="/incidencias/<%= post.slug %>/estado" class="dropdown-panel">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <label class="field"><span>Nuevo estado</span>
+              <select name="estado">
+                <% for (const s of Object.values(STATUSES)) { %><option value="<%= s.key %>" <%= post.status === s.key ? 'selected' : '' %>><%= s.label %> — <%= s.description %></option><% } %>
+              </select>
+            </label>
+            <label class="field"><span>Nota (opcional, visible en el historial)</span>
+              <textarea name="nota" rows="3" maxlength="600" placeholder="Ej.: Han venido a arreglarlo el día 12. / Presentada reclamación con nº de registro…"></textarea>
+            </label>
+            <button type="submit" class="btn btn-primary btn-sm">Guardar estado</button>
+          </form>
+        </details>
+        <form method="post" action="/incidencias/<%= post.slug %>/eliminar" class="inline-form" data-confirm="¿Seguro que quieres eliminar esta publicación? Se borrarán también sus fotos y comentarios.">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button type="submit" class="btn btn-ghost btn-sm btn-danger-text"><%- icon('trash') %> Eliminar</button>
+        </form>
+        <% } %>
+        <% if (isMod) { %><%- include('../partials/facebook-actions', { post, share, volver: `/incidencias/${post.slug}` }) %><% } %>
+        <% if (user && user.id !== post.author_id) { %>
+        <details class="dropdown">
+          <summary class="btn btn-ghost btn-sm"><%- icon('flag') %> Denunciar</summary>
+          <form method="post" action="/incidencias/<%= post.slug %>/denunciar" class="dropdown-panel">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <label class="field"><span>Motivo</span>
+              <select name="motivo"><% for (const [k, v] of Object.entries(REPORT_REASONS)) { %><option value="<%= k %>"><%= v %></option><% } %></select>
+            </label>
+            <label class="field"><span>Detalles (opcional)</span><textarea name="detalles" rows="2" maxlength="500"></textarea></label>
+            <button type="submit" class="btn btn-primary btn-sm">Enviar a moderación</button>
+          </form>
+        </details>
+        <% } %>
+      </div>
+      <% } %>
+
+      <section id="historial" class="post-section">
+        <h2><%- icon('clock') %> Historial</h2>
+        <ol class="timeline">
+          <% for (const h of history) { %>
+          <li class="timeline-item timeline-<%= h.to_status %>">
+            <span class="timeline-dot" aria-hidden="true"></span>
+            <div>
+              <div class="timeline-head">
+                <span class="status status-<%= h.to_status %> status-sm"><%= STATUSES[h.to_status] ? STATUSES[h.to_status].label : h.to_status %></span>
+                <span class="meta"><%= h.from_status ? 'Cambio de estado' : 'Publicada' %><%= h.user_name ? ` por ${h.user_name}` : '' %> · <time datetime="<%= toIso(h.created_at) %>"><%= formatDateTime(h.created_at) %></time></span>
+              </div>
+              <% if (h.note) { %><p class="timeline-note"><%= h.note %></p><% } %>
+            </div>
+          </li>
+          <% } %>
+        </ol>
+      </section>
+
+      <section id="comentarios" class="post-section">
+        <h2><%- icon('comment') %> Comentarios <span class="count-pill" data-comment-count><%= comments.filter((c) => !c.is_hidden).length %></span></h2>
+        <% if (comments.length) { %>
+        <ul class="comments" data-comments>
+          <% for (const c of comments) { %>
+          <%- include('../partials/comment', { c, post, canDeleteComment }) %>
+          <% } %>
+        </ul>
+        <% } else { %>
+        <ul class="comments" data-comments hidden></ul>
+        <p class="muted" data-comments-empty>Todavía no hay comentarios. ¿Te afecta a ti también? Cuéntalo.</p>
+        <% } %>
+
+        <% if (user) { %>
+          <% if (post.status === 'cerrada' && !isMod) { %>
+          <p class="notice"><%- icon('lock') %> <span>Esta publicación está cerrada y no admite nuevos comentarios.</span></p>
+          <% } else { %>
+          <form method="post" action="/incidencias/<%= post.slug %>/comentarios" class="comment-form">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <label class="field"><span class="sr-only">Escribe un comentario</span>
+              <textarea name="cuerpo" rows="4" maxlength="2000" required placeholder="Añade información, fechas, números de aviso, fotos que hayas enviado… Todo suma."></textarea>
+            </label>
+            <div class="form-actions">
+              <span class="muted small">Comentas como <strong><%= user.name %></strong>. Recuerda las <a href="/normas">normas</a>.</span>
+              <button type="submit" class="btn btn-primary">Publicar comentario</button>
+            </div>
+          </form>
+          <% } %>
+        <% } else { %>
+        <div class="login-prompt">
+          <%- icon('users', 'icon-lg') %>
+          <p><a href="/acceder?next=<%= encodeURIComponent(`/incidencias/${post.slug}#comentarios`) %>">Inicia sesión</a> o <a href="/registro?next=<%= encodeURIComponent(`/incidencias/${post.slug}`) %>">crea una cuenta</a> para comentar y apoyar. Es gratis y solo lleva un minuto.</p>
+        </div>
+        <% } %>
+      </section>
+    </article>
+
+    <aside class="post-aside">
+      <div class="card aside-card">
+        <h3><%- icon('building') %> ¿Cómo reclamar oficialmente?</h3>
+        <p>Este foro da visibilidad, pero la reclamación con validez legal se presenta al organismo responsable. Te explicamos cómo en la página de <a href="/recursos">recursos y contactos</a>.</p>
+        <ol class="mini-steps">
+          <li>Presenta la queja por registro o por teléfono (010).</li>
+          <li>Guarda el número de registro o expediente.</li>
+          <li>Anótalo aquí con «Cambiar estado → En trámite».</li>
+        </ol>
+      </div>
+      <% if (related.length) { %>
+      <div class="card aside-card">
+        <h3><%- categoryIcon(post.category_slug) %> Relacionadas en <%= post.category_name %></h3>
+        <ul class="related-list">
+          <% for (const r of related) { %>
+          <li><a href="/incidencias/<%= r.slug %>"><%= r.title %></a><span class="meta"><span class="status status-<%= r.status %> status-sm"><%= STATUSES[r.status].label %></span> · <%- icon('thumb') %> <%= r.support_count %></span></li>
+          <% } %>
+        </ul>
+      </div>
+      <% } %>
+      <div class="card aside-card aside-cta">
+        <%- icon('megaphone', 'icon-lg') %>
+        <h3>¿Tienes otro problema que contar?</h3>
+        <a class="btn btn-accent" href="/incidencias/nueva"><%- icon('plus') %> Nueva publicación</a>
+      </div>
+    </aside>
+  </div>
+</div>
+<div class="lightbox" data-lightbox-root hidden>
+  <button type="button" class="lightbox-close" data-lightbox-close aria-label="Cerrar"><%- icon('x') %></button>
+  <img alt="">
+  <p class="lightbox-caption"></p>
+</div>
+<script type="application/json" id="category-icons"><%- categoryIconJson %></script>
+<%- include('../partials/foot', { useMap: Boolean(post.lat && post.lng) }) %>

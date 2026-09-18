@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "foro",
+      "runtimeExecutable": "tools/node/node.exe",
+      "runtimeArgs": ["--disable-warning=ExperimentalWarning", "--watch", "src/server.js"],
+      "port": 3000
+    }
+  ]
+}

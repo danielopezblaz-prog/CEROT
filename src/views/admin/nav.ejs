@@ -1,0 +1,12 @@
+<nav class="admin-nav" aria-label="Panel">
+  <a class="<%= active === 'panel' ? 'is-active' : '' %>" href="/admin"><%- icon('shield') %> Resumen</a>
+  <a class="<%= active === 'posts' ? 'is-active' : '' %>" href="/admin/publicaciones"><%- icon('file') %> Publicaciones</a>
+  <% const pendBiz = pendingBusinesses(); %>
+  <a class="<%= active === 'businesses' ? 'is-active' : '' %>" href="/admin/negocios"><%- icon('store') %> Negocios <span class="badge-count" title="Pendientes de aprobar" data-badge-negocios <%= pendBiz > 0 ? '' : 'hidden' %>><%= pendBiz %></span></a>
+  <a class="<%= active === 'reports' ? 'is-active' : '' %>" href="/admin/denuncias"><%- icon('flag') %> Denuncias<% const pend = pendingReports(); %> <span class="badge-count" data-badge-denuncias <%= pend > 0 ? '' : 'hidden' %>><%= pend %></span></a>
+  <% if (isAdmin) { %><a class="<%= active === 'users' ? 'is-active' : '' %>" href="/admin/usuarios"><%- icon('users') %> Usuarios</a><% } %>
+  <span class="admin-nav-extra" role="group" aria-label="Páginas públicas de datos">
+    <a href="/estadisticas" title="Página pública con las cifras del barrio"><%- icon('chart') %> Estado del barrio</a>
+    <a href="/informe" title="Página pública con el informe para el Ayuntamiento"><%- icon('file') %> Informe</a>
+  </span>
+</nav>
