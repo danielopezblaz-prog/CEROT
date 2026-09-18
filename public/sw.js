@@ -63,20 +63,29 @@ async function recortar(nombre, tope) {
   await Promise.all(claves.slice(0, claves.length - tope).map((k) => cache.delete(k)));
 }
 
-/** Primero la copia guardada; si no está, la red (y se guarda para la próxima). */
-async function deLaCaja(req, nombre, tope) {
+/**
+ * Primero la copia guardada; si no está, la red (y se guarda para la próxima).
+ * Con `revalidar`, la copia guardada se sirve al momento pero se vuelve a pedir
+ * por detrás y se sustituye: las respuestas de otros sitios llegan «opacas» (no se
+ * puede saber si son un plano o un error) y sin esto un fallo pasajero dejaba una
+ * zona del mapa gris para siempre en ese navegador.
+ */
+async function deLaCaja(req, nombre, tope, revalidar = false) {
   const cache = await caches.open(nombre);
+  const guardar = async () => {
+    const res = await fetch(req);
+    if (res && (res.ok || res.type === 'opaque')) {
+      await cache.put(req, res.clone());
+      recortar(nombre, tope);
+    }
+    return res;
+  };
   const guardada = await cache.match(req);
-  if (guardada) return guardada;
-  const res = await fetch(req);
-  // Solo se guarda lo que ha llegado bien de verdad. Una respuesta «opaca» (sin
-  // CORS) no dice si es un plano o un error, así que se sirve pero no se guarda:
-  // guardarla dejaba una zona del mapa gris para siempre tras un fallo pasajero.
-  if (res && res.ok) {
-    cache.put(req, res.clone());
-    recortar(nombre, tope);
+  if (guardada) {
+    if (revalidar) guardar().catch(() => {});
+    return guardada;
   }
-  return res;
+  return guardar();
 }
 
 /**
@@ -130,7 +139,7 @@ self.addEventListener('fetch', (e) => {
   // Las teselas del mapa se guardan: así el mapa sigue viéndose sin datos y se
   // baja mucho la carga sobre los servidores de OpenStreetMap.
   if (url.hostname.endsWith('tile.openstreetmap.org')) {
-    e.respondWith(deLaCaja(req, MAPAS, TOPE_MAPAS).catch(() => Response.error()));
+    e.respondWith(deLaCaja(req, MAPAS, TOPE_MAPAS, true).catch(() => Response.error()));
     return;
   }
 

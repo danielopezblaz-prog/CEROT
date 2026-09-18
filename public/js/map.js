@@ -19,10 +19,7 @@
 
   function baseMap(el) {
     const map = L.map(el, { scrollWheelZoom: false }).setView([Number(el.dataset.lat), Number(el.dataset.lng)], Number(el.dataset.zoom) || 15);
-    // crossOrigin: los planos se piden con CORS, que OpenStreetMap permite. Así el
-    // modo app ve si un plano ha llegado bien o no; sin esto todo llega «opaco» y
-    // un fallo pasajero se guardaba en caché como si fuera un plano bueno.
-    L.tileLayer(TILES, { attribution: ATTR, maxZoom: 19, crossOrigin: true }).addTo(map);
+    L.tileLayer(TILES, { attribution: ATTR, maxZoom: 19 }).addTo(map);
     L.control.scale({ imperial: false }).addTo(map);
     map.on('focus', () => map.scrollWheelZoom.enable());
     map.on('blur', () => map.scrollWheelZoom.disable());
