@@ -204,6 +204,11 @@ mkdir -p data
 chown -R 1000:1000 data
 verde 'data/ preparada para que el foro pueda escribir en ella.'
 
+# Vale tanto si el .env lo escribió este instalador (con comillas) como si lo
+# rellenó alguien a mano a partir de .env.produccion.example (sin ellas).
+DOMINIO_FINAL="$(sed -n "s/^DOMINIO=['\"]\{0,1\}\([^'\"]*\)['\"]\{0,1\}[[:space:]]*$/\1/p" .env | head -1)"
+DOMINIO_FINAL="${DOMINIO_FINAL:-$DOMINIO_POR_DEFECTO}"
+
 titulo 'Arrancando el foro'
 echo 'La primera vez tarda unos minutos: hay que construirlo y pedir el'
 echo 'certificado de HTTPS a Let'"'"'s Encrypt.'
@@ -211,27 +216,35 @@ echo
 
 docker compose up -d --build
 
-# No basta con que el contenedor exista: hay que ver que sigue vivo unos
-# segundos después. Si se cae, el usuario tiene que enterarse aquí y ahora,
-# no descubrirlo cuando el navegador no cargue.
-echo
-echo 'Comprobando que el foro se mantiene en pie...'
-sleep 12
-ESTADO="$(docker compose ps --format '{{.Service}} {{.State}}' 2>/dev/null || true)"
-echo "$ESTADO"
-if printf '%s' "$ESTADO" | grep -qiE 'foro +(restarting|exited|dead)'; then
-  rojo '
-El foro no consigue arrancar. Esto es lo último que ha dicho:'
-  echo
-  docker compose logs --tail 30 foro || true
-  abortar 'Cópiame esas líneas y te digo qué pasa. Suele ser algo que falta en el .env.'
-fi
-verde 'El foro está en marcha.'
+# Docker espacia cada vez más los reintentos de un contenedor que lleva rato
+# cayéndose: al cabo de un rato son minutos. Si el foro venía de un bucle de
+# reinicios (por ejemplo, por el fichero de la contraseña inicial), un reinicio
+# explícito lo levanta ya, sin esperar a que le toque el turno.
+docker compose restart foro >/dev/null 2>&1 || true
 
-# Vale tanto si el .env lo escribió este instalador (con comillas) como si lo
-# rellenó alguien a mano a partir de .env.produccion.example (sin ellas).
-DOMINIO_FINAL="$(sed -n "s/^DOMINIO=['\"]\{0,1\}\([^'\"]*\)['\"]\{0,1\}[[:space:]]*$/\1/p" .env | head -1)"
-DOMINIO_FINAL="${DOMINIO_FINAL:-$DOMINIO_POR_DEFECTO}"
+# No basta con que el contenedor exista: la prueba de verdad es que la web
+# responda pasando por Caddy, como la verá un vecino. Se le da hasta minuto y
+# medio, que es lo que puede tardar el primer certificado.
+echo
+echo 'Comprobando que el foro responde en la web (hasta minuto y medio)...'
+RESPUESTA=''
+for intento in $(seq 1 18); do
+  sleep 5
+  RESPUESTA="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 -k --resolve "${DOMINIO_FINAL}:443:127.0.0.1" "https://${DOMINIO_FINAL}/api/salud" 2>/dev/null || true)"
+  [ "$RESPUESTA" = "200" ] && break
+  # Si el contenedor ya se ha muerto del todo, no hay nada que esperar.
+  if docker compose ps --format '{{.Service}} {{.State}}' 2>/dev/null | grep -qiE '^foro +(exited|dead)'; then break; fi
+done
+echo
+docker compose ps
+if [ "$RESPUESTA" != "200" ]; then
+  rojo '
+El foro no responde. Esto es lo último que ha dicho (solo lo de los últimos minutos):'
+  echo
+  docker compose logs --tail 30 --since 3m foro || true
+  abortar 'Cópiame esas líneas y te digo qué pasa.'
+fi
+verde "El foro responde en https://${DOMINIO_FINAL}."
 
 titulo 'Listo'
 verde "Abre https://${DOMINIO_FINAL} en el navegador."
