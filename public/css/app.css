@@ -401,7 +401,7 @@ a.stat-tile:hover { background: rgba(255, 255, 255, 0.18); text-decoration: none
   .hero-foto .btn-outline-light { background: rgba(14, 40, 34, 0.5); }
 }
 @media (max-width: 860px) {
-  .hero-foto { min-height: 0; padding: 2.5rem 0 2.75rem; }
+  .hero-foto { min-height: 0; padding: 2.5rem 0 2.75rem; background-image: url('/img/portada-movil.webp'); } /* versión ligera de la foto: el móvil no necesita 1.900 px */
   .hero-foto::before { background: linear-gradient(180deg, rgba(7, 26, 22, 0.7), rgba(7, 26, 22, 0.5) 55%, rgba(7, 26, 22, 0.64)); }
 }
 
