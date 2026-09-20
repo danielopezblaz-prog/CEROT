@@ -24,7 +24,7 @@ Para el usuario, `Iniciar.cmd` lo arranca con doble clic.
 |---|---|
 | `npm start` | Arranca el foro |
 | `npm run dev` | Igual, recargando al cambiar `src/` |
-| `npm test` | 53 pruebas (node:test, base de datos en memoria) |
+| `npm test` | 54 pruebas (node:test, base de datos en memoria) |
 | `npm run rastreo` | Recorre las 186 páginas con 3 perfiles y avisa de las rotas |
 | `npm run carga` | Mide peticiones por segundo, incluido el directo con 300 conexiones |
 | `npm run exportar` | Copia estática navegable en `export/` (ver README) |
@@ -162,9 +162,9 @@ Pendiente antes de abrir al barrio:
 - **`LEGAL_OWNER` y `CONTACT_EMAIL`** en el `.env`: obligatorio por el RGPD.
 - **Cambiar la contraseña de administración** (al hacerlo se borra solo `data/PRIMER-ACCESO.txt`).
 - **Borrar el contenido de ejemplo** desde el panel.
-- **Configurar el envío de correo.** Con el buzón propio (`smtp`) o con Brevo.
-  Sin ello, quien olvide su contraseña depende de que se la cambies tú a mano.
-  Ver README, «Recuperar la contraseña».
+- **Configurar el envío de correo:** `bash scripts/correo.sh` en el servidor.
+  Pregunta, guarda en el `.env`, reinicia y manda un correo de prueba. Sin ello,
+  quien olvide su contraseña depende de que se la cambies tú a mano.
 
 Opcionales que se han dejado fuera a propósito: avisos push al móvil y modo
 oscuro (el CSS tiene el blanco escrito a mano en unos noventa sitios; hacerlo a

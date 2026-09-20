@@ -199,7 +199,13 @@ la próxima vez que la abran.
 
 Hasta que no le digas al foro por qué buzón enviar, quien olvide su contraseña
 tendrá que pedírtela a ti. Se arregla en diez minutos y **sin gastar nada**: con
-una cuenta de Gmail nueva para el foro, o con una cuenta gratuita de Brevo. Está explicado paso a paso en el README, apartado «Recuperar la
+una cuenta de Gmail nueva para el foro, o con una cuenta gratuita de Brevo.
+
+```bash
+cd /opt/foro && bash scripts/correo.sh
+```
+
+El script lo pregunta todo y manda un correo de prueba al terminar. Está explicado paso a paso en el README, apartado «Recuperar la
 contraseña», incluido por qué el servidor no puede enviarlos él solo. El panel de
 moderación te avisa mientras esté sin configurar.
 

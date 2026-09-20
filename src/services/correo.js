@@ -162,6 +162,37 @@ export function createMailService(config) {
   };
 }
 
+/** Correo de prueba, para comprobar desde el servidor que el envío funciona. */
+export function correoDePrueba({ site }) {
+  const foro = `${site.brand} ${site.name}`;
+  return {
+    asunto: `Prueba de envío · ${foro}`,
+    texto: [
+      'Esto es una prueba.',
+      '',
+      `Si estás leyendo este correo, el foro de ${site.name} ya puede enviarlos.`,
+      'A partir de ahora, un vecino que olvide su contraseña podrá recuperarla',
+      'él solo desde la pantalla de acceso, sin pedírtela a ti.',
+      '',
+      'No hace falta que contestes.',
+      '',
+      '--',
+      foro,
+    ].join('\n'),
+    html: `<!doctype html><html lang="es"><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:24px;background:#f4f7f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#1f2937;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+    <table role="presentation" width="100%" style="max-width:520px;background:#ffffff;border-radius:14px;padding:28px;" cellpadding="0" cellspacing="0"><tr><td>
+      <p style="margin:0 0 4px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#0f5c4c;font-weight:700;">${escapeHtml(foro)}</p>
+      <h1 style="margin:0 0 16px;font-size:22px;line-height:1.3;color:#0f172a;">El envío de correo funciona</h1>
+      <p style="margin:0 0 12px;font-size:16px;line-height:1.55;">Si estás leyendo esto, el foro de ${escapeHtml(site.name)} ya puede enviar correos.</p>
+      <p style="margin:0;font-size:16px;line-height:1.55;">A partir de ahora, un vecino que olvide su contraseña podrá recuperarla él solo desde la pantalla de acceso, sin pedírtela a ti.</p>
+    </td></tr></table>
+  </td></tr></table>
+</body></html>`,
+  };
+}
+
 /**
  * El correo con el enlace para recuperar la contraseña. Va en texto y en HTML:
  * los programas de correo antiguos, y los que bloquean el formato, enseñan el

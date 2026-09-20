@@ -434,28 +434,29 @@ CORREO_REMITENTE='el-correo-que-has-verificado@ejemplo.com'
 **Resend** (<https://resend.com>, 3.000 correos al mes) funciona igual: cambia
 `CORREO_PROVEEDOR` a `'resend'` y usa su clave, que empieza por `re_`.
 
-### Cómo se pone y cómo se prueba
+### Cómo se pone, sin tocar ficheros
 
-Entra por SSH al servidor y edita el fichero de configuración:
-
-```bash
-cd /opt/foro && nano .env
-```
-
-Pega las líneas de la opción que hayas elegido (deja las comillas), guarda con
-`Control+O` y Enter, y sal con `Control+X`. Luego aplícalo:
+Hay un script que lo pregunta todo, lo guarda, reinicia el foro y **te manda un
+correo de prueba** para que sepas en el momento si funciona. En el servidor:
 
 ```bash
-bash scripts/actualizar.sh
+cd /opt/foro && bash scripts/correo.sh
 ```
 
-Para probarlo, abre `https://veredadelosestudiantes.es/recuperar`, pon tu correo
-y mira si llega. Revisa también la carpeta de spam. Si algo falla, el motivo
-queda escrito en castellano en los registros:
+Te ofrece las opciones de arriba (Gmail, buzón del dominio, Brevo o dejar de
+enviar), te pide solo los datos de la que elijas y se encarga del resto. Se puede
+volver a ejecutar las veces que haga falta: solo toca las líneas del correo y
+nunca roza los datos de los vecinos.
+
+Si algo falla, el motivo sale ahí mismo, en castellano. También queda en los
+registros:
 
 ```bash
 docker compose logs --tail 50 foro
 ```
+
+Y si prefieres hacerlo a mano, las líneas van en `/opt/foro/.env` y se aplican
+con `bash scripts/actualizar.sh`.
 
 ### Que no acabe en la carpeta de spam
 

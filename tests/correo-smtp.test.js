@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import net from 'node:net';
-import { createMailService, correoDeRecuperacion } from '../src/services/correo.js';
+import { createMailService, correoDeRecuperacion, correoDePrueba } from '../src/services/correo.js';
 import { config } from '../src/config.js';
 
 /*
@@ -115,6 +115,18 @@ test('el correo sale por el buzón propio, con su remitente y su enlace', async 
   assert.match(entregado.datos, /^From: .*<foro@ejemplo\.es>$/m);
   assert.ok(sinCortes(entregado.datos).includes(enlace), 'el enlace llega entero, sin partir');
   assert.match(entregado.datos, /Subject: .*(contrase|Recupera|=\?)/i);
+});
+
+test('el correo de prueba dice en una línea que el envío ya funciona', async () => {
+  const correo = servicio();
+  const mensaje = correoDePrueba({ site: config.site });
+  assert.match(mensaje.asunto, /^Prueba de envío/);
+  assert.ok(mensaje.texto.includes(config.site.name));
+  assert.equal(await correo.enviar({ para: 'daniel@ejemplo.es', ...mensaje }), true);
+
+  const entregado = recibidos.at(-1);
+  assert.deepEqual(entregado.para, ['daniel@ejemplo.es']);
+  assert.match(sinCortes(entregado.datos), /ya puede enviar/);
 });
 
 test('sin servidor o sin cuenta, el buzón propio no se da por configurado', async () => {
