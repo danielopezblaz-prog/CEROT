@@ -356,6 +356,22 @@ buzón en tu propio dominio, y no hace ninguna falta para empezar.
 Un foro de barrio manda un puñado de correos al mes: cualquiera de los cupos
 gratuitos sobra por mucho.
 
+**¿Gratis hasta cuándo?** No son pruebas de un mes: son los planes gratuitos
+normales de esas empresas y ninguno tiene fecha de caducidad anunciada. Enviar
+desde tu propio Gmail no es siquiera un «plan»: es lo que hace una cuenta de
+correo corriente desde hace veinte años. Dicho esto, nadie puede prometerte que
+una empresa no cambie de idea.
+
+Lo importante es que **eso no te deja atrapado**. Cambiar de una forma de envío a
+otra son tres líneas del `.env` y volver a ejecutar `scripts/actualizar.sh`: diez
+minutos. Y si un día dejara de funcionar sin que te enteres, lo único que se cae
+es el enlace de «he olvidado mi contraseña». El foro sigue funcionando igual y tú
+puedes cambiar cualquier contraseña desde **Panel → Usuarios**, como hasta ahora.
+
+Un detalle con la cuenta de Gmail nueva: Google borra las cuentas que pasan dos
+años sin usarse. La del foro se usa cada vez que envía, pero si el foro estuviera
+parado una temporada, entra en ella de vez en cuando.
+
 ### Opción A: un correo nuevo para el foro (gratis, y lo más sencillo)
 
 Crea una cuenta de **Gmail nueva y solo para el foro**, por ejemplo
