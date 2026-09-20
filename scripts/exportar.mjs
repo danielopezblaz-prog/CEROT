@@ -347,14 +347,14 @@ async function main() {
     const css = path.join(SALIDA, 'css', 'app.css');
     fs.writeFileSync(css, fs.readFileSync(css, 'utf8').replace(/url\(['"]?\/([^'")]+)['"]?\)/g, "url('../$1')"));
 
-    // El mapa deja de pedir teselas a internet.
+    // El mapa deja de pedir los planos al foro: van incrustados.
     const mapJs = path.join(SALIDA, 'js', 'map.js');
     fs.writeFileSync(
       mapJs,
       fs
         .readFileSync(mapJs, 'utf8')
         .replace(
-          "const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';",
+          "const TILES = '/planos/{z}/{x}/{y}.png';",
           "const TILES = '';"
         )
         .replace(
@@ -379,7 +379,7 @@ async function main() {
       fs
         .readFileSync(appJs, 'utf8')
         .replace(
-          'img.src = `https://tile.openstreetmap.org/${ZOOM}/${tx}/${ty}.png`;',
+          'img.src = `/planos/${ZOOM}/${tx}/${ty}.png`;',
           'img.src = window.tesela(ZOOM, tx, ty);'
         )
     );

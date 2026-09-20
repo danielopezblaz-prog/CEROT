@@ -24,7 +24,7 @@ Para el usuario, `Iniciar.cmd` lo arranca con doble clic.
 |---|---|
 | `npm start` | Arranca el foro |
 | `npm run dev` | Igual, recargando al cambiar `src/` |
-| `npm test` | 37 pruebas (node:test, base de datos en memoria) |
+| `npm test` | 41 pruebas (node:test, base de datos en memoria) |
 | `npm run rastreo` | Recorre las 186 páginas con 3 perfiles y avisa de las rotas |
 | `npm run carga` | Mide peticiones por segundo, incluido el directo con 300 conexiones |
 | `npm run exportar` | Copia estática navegable en `export/` (ver README) |
@@ -51,11 +51,11 @@ src/config.js        Lee el .env
 src/db/              Esquema, migraciones (schema_version) y contenido de ejemplo
 src/services/        Acceso a datos, uno por entidad
 src/services/events.js  Bus de avisos en vivo (en memoria, no toca la base)
-src/routes/          HTTP: index, auth, posts, businesses, admin, api, live
+src/routes/          HTTP: index, auth, posts, businesses, admin, api, live, planos (mapa)
 src/middleware/      Sesiones (SQLite), CSRF, subida de fotos, límites, errores
 src/views/           Plantillas EJS
 public/              CSS, JS, fuentes, iconos, service worker, manifiesto
-data/                Base de datos y fotos. NO se sube a ningún sitio.
+data/                Base de datos, fotos y caché de planos del mapa. NO se sube a ningún sitio.
 ```
 
 ---
@@ -108,6 +108,13 @@ Son suyas y algunas tienen consecuencias legales:
   no impide arrancar: en producción dejaba el contenedor reiniciándose sin fin
   tras cualquier actualización. Se borra solo cuando el administrador cambia su
   contraseña. Para actualizar en el servidor: `bash scripts/actualizar.sh`.
+- **El mapa no habla con OpenStreetMap desde el navegador.** Los planos y la
+  búsqueda de direcciones pasan por `/planos/…` (`src/routes/planos.js`), que los
+  pide a OpenStreetMap y los guarda en `data/planos/` (caché: se puede borrar). El
+  Relay privado de iCloud del iPhone cortaba las peticiones directas y el mapa se
+  quedaba gris. La CSP ya no permite `tile.openstreetmap.org`: una URL externa en
+  `map.js` o `app.js` la bloquea el navegador. Solo se sirven planos de la zona de
+  Madrid y con tope por conexión.
 - **Escribir ficheros:** los heredocs de Bash largos fallan en este equipo
   («unexpected EOF»). Usa la herramienta Write para ficheros de cierto tamaño.
 

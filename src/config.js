@@ -66,6 +66,10 @@ export const config = {
     lat: envNum('MAP_CENTER_LAT', 40.3215),
     lng: envNum('MAP_CENTER_LNG', -3.756),
     zoom: envNum('MAP_ZOOM', 15),
+    // Los planos y la búsqueda de direcciones se piden a OpenStreetMap desde el
+    // servidor (src/routes/planos.js). Se puede apuntar a otro sitio en las pruebas.
+    origenPlanos: env('PLANOS_ORIGEN', 'https://tile.openstreetmap.org').replace(/\/+$/, ''),
+    origenBusqueda: env('BUSQUEDA_ORIGEN', 'https://nominatim.openstreetmap.org/search'),
   },
   admin: {
     email: env('ADMIN_EMAIL', 'admin@vereda.local'),

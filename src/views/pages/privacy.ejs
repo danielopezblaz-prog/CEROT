@@ -7,7 +7,7 @@
     <p><strong><%= site.legalOwner || '[nombre de la asociación o persona responsable — configúralo en LEGAL_OWNER]' %></strong><% if (site.contactEmail) { %>, contacto: <a href="mailto:<%= site.contactEmail %>"><%= site.contactEmail %></a><% } %>.</p>
     <h2>Qué datos tratamos</h2>
     <ul>
-      <li><strong>Cuenta:</strong> nombre, apellidos, teléfono, correo electrónico y contraseña (almacenada cifrada con bcrypt; nadie puede leerla).</li>
+      <li><strong>Cuenta:</strong> nombre, apellidos, teléfono, correo electrónico y contraseña (guardada de forma irreversible: nadie puede leerla, ni siquiera la administración).</li>
       <li><strong>Qué es público y qué no:</strong> en el foro apareces con tu nombre y la inicial de tu primer apellido, por ejemplo «Marta G.». Tus <strong>apellidos completos, tu teléfono y tu correo no se muestran a nadie</strong>: solo tienen acceso a ellos las personas que administran el foro, y los usan para verificar que eres del barrio y para contactar contigo si hay un problema con tu cuenta o con algo que hayas publicado.</li>
       <li><strong>Contenido que publicas:</strong> publicaciones, comentarios, apoyos, fotos y ubicaciones que tú mismo indicas. Es público.</li>
       <li><strong>Datos técnicos:</strong> dirección IP y fecha en los registros del servidor, con fines de seguridad y para limitar abusos. Se conservan un máximo de 30 días.</li>
@@ -16,7 +16,7 @@
     <h2>Para qué y con qué base legal</h2>
     <p>Para prestar el servicio del foro (ejecución de la relación contigo al registrarte), moderar y garantizar la seguridad (interés legítimo) y elaborar estadísticas e informes agregados, que no contienen datos personales.</p>
     <h2>Terceros</h2>
-    <p>Los mapas se cargan desde servidores de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>, que reciben tu dirección IP al mostrar las teselas del mapa. La búsqueda de direcciones utiliza el servicio Nominatim de OpenStreetMap. Los botones de compartir abren la aplicación correspondiente (WhatsApp, Telegram, X, Facebook) en tu dispositivo; no cargan código de esas empresas en esta web.</p>
+    <p>Los mapas son de <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>. Los planos y la búsqueda de direcciones (servicio Nominatim) los pide el servidor del foro, no tu navegador: OpenStreetMap no recibe tu dirección IP, solo la del foro y, al buscar, el texto de la dirección que escribes. Los botones de compartir abren la aplicación correspondiente (WhatsApp, Telegram, X, Facebook) en tu dispositivo; no cargan código de esas empresas en esta web.</p>
     <h2>Conservación</h2>
     <p>Conservamos tu cuenta mientras la mantengas activa. Puedes pedir su eliminación en cualquier momento; las publicaciones pueden conservarse de forma anónima si tienen interés para el barrio, salvo que solicites su borrado.</p>
     <h2>Tus derechos</h2>

@@ -11,7 +11,7 @@
  *  2. Nada de interceptar el flujo de eventos en vivo ni la API.
  */
 
-const VERSION = 'v4'; // subir el numero obliga a todos los navegadores a soltar las copias guardadas
+const VERSION = 'v5'; // subir el numero obliga a todos los navegadores a soltar las copias guardadas
 const ARMAZON = 'foro-armazon-' + VERSION;
 const FOTOS = 'foro-fotos-' + VERSION;
 const MAPAS = 'foro-mapas-' + VERSION;
@@ -136,9 +136,9 @@ self.addEventListener('fetch', (e) => {
   if (propio && url.pathname.startsWith('/api/')) return;
   if (req.headers.get('accept') === 'text/event-stream') return;
 
-  // Las teselas del mapa se guardan: así el mapa sigue viéndose sin datos y se
-  // baja mucho la carga sobre los servidores de OpenStreetMap.
-  if (url.hostname.endsWith('tile.openstreetmap.org')) {
+  // Los planos del mapa (los sirve el propio foro en /planos/) se guardan: así el
+  // mapa sigue viéndose sin datos. La búsqueda de direcciones no se guarda.
+  if (propio && url.pathname.startsWith('/planos/') && !url.pathname.startsWith('/planos/buscar')) {
     e.respondWith(deLaCaja(req, MAPAS, TOPE_MAPAS, true).catch(() => Response.error()));
     return;
   }

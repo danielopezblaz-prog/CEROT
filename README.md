@@ -42,7 +42,7 @@ Diseño propio sin dependencias externas: tipografía Manrope autoalojada, icono
 - Panel de moderación: denuncias de contenido, ocultar / fijar / eliminar publicaciones, gestión de usuarios (roles, bloqueo, restablecer contraseñas), copia de seguridad descargable y borrado del contenido de ejemplo.
 - **Compartir en Facebook** con un clic desde el panel, con opción de retirar lo publicado. Opcional y siempre manual; ver el apartado correspondiente más abajo.
 - Seguridad: contraseñas cifradas (scrypt), sesiones en servidor, protección CSRF, límites de peticiones contra spam y fuerza bruta, cabeceras de seguridad (Helmet + CSP), validación de subidas.
-- **Sin base de datos externa**: usa la SQLite integrada en Node.js. Todo vive en la carpeta `data/` (un fichero de base de datos + las fotos).
+- **Sin base de datos externa**: usa la SQLite integrada en Node.js. Todo vive en la carpeta `data/` (un fichero de base de datos, las fotos y los planos del mapa).
 
 ---
 
@@ -438,6 +438,7 @@ Toda la información está en la carpeta `data/`:
 
 - `data/foro.sqlite` (y sus ficheros `-wal` / `-shm`): publicaciones, usuarios, comentarios…
 - `data/uploads/`: fotos.
+- `data/planos/`: planos del mapa guardados para no pedírselos a OpenStreetMap cada vez. Es una caché: se puede borrar y se vuelve a llenar sola.
 
 Copia esa carpeta con regularidad. Desde **Panel → Descargar copia de seguridad** obtienes una copia consistente de la base de datos sin parar el servidor. Para restaurar, para el servidor y sustituye `data/foro.sqlite` por la copia.
 
@@ -515,7 +516,7 @@ src/config.js          Lectura de .env
 src/db/                Esquema SQLite, conexión y datos iniciales (seed.js)
 src/services/          Acceso a datos: usuarios, publicaciones, comentarios, denuncias, estadísticas
 src/services/events.js Bus de avisos en vivo (en memoria)
-src/routes/            Rutas HTTP: portada/listados, autenticación, publicaciones, negocios, admin, API
+src/routes/            Rutas HTTP: portada/listados, autenticación, publicaciones, negocios, admin, API, planos del mapa
 src/middleware/        Sesiones, CSRF, subida de fotos, límites, errores
 src/views/             Plantillas EJS (páginas, parciales, admin)
 src/data/recursos.js   Contactos y pasos para reclamar
@@ -529,7 +530,7 @@ Caddyfile              Proxy con HTTPS automático para producción
 DESPLIEGUE.md          Guía paso a paso para ponerlo en el dominio
 .env.produccion.example  Plantilla de configuración del servidor
 tests/                 Pruebas automáticas (npm test)
-data/                  Base de datos y fotos (no se sube al repositorio)
+data/                  Base de datos, fotos y caché de planos del mapa (no se sube al repositorio)
 tools/node/            Node.js portátil para Windows (no se sube al repositorio)
 ```
 

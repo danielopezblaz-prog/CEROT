@@ -298,7 +298,7 @@
           img.decoding = 'async';
           img.style.left = `${tx * 256 - left}px`;
           img.style.top = `${ty * 256 - top}px`;
-          img.src = `https://tile.openstreetmap.org/${ZOOM}/${tx}/${ty}.png`;
+          img.src = `/planos/${ZOOM}/${tx}/${ty}.png`;
           pending += 1;
           img.addEventListener('load', () => {
             pending -= 1;

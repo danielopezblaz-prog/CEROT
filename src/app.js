@@ -30,6 +30,7 @@ import { postRoutes } from './routes/posts.js';
 import { businessRoutes } from './routes/businesses.js';
 import { adminRoutes } from './routes/admin.js';
 import { apiRoutes } from './routes/api.js';
+import { planosRoutes } from './routes/planos.js';
 import { liveRoutes } from './routes/live.js';
 
 export function createApp(config, { dbFile = config.dbFile } = {}) {
@@ -71,8 +72,10 @@ export function createApp(config, { dbFile = config.dbFile } = {}) {
           // con colores de categoría, que quedan permitidos aparte.
           styleSrc: ["'self'"],
           styleSrcAttr: ["'unsafe-inline'"],
-          imgSrc: ["'self'", 'data:', 'blob:', 'https://*.tile.openstreetmap.org', 'https://tile.openstreetmap.org'],
-          connectSrc: ["'self'", 'https://nominatim.openstreetmap.org'],
+          // Los planos del mapa y la búsqueda de direcciones pasan por el propio foro
+          // (src/routes/planos.js): el navegador no habla con OpenStreetMap.
+          imgSrc: ["'self'", 'data:', 'blob:'],
+          connectSrc: ["'self'"],
           fontSrc: ["'self'", 'data:'],
           objectSrc: ["'none'"],
           frameSrc: ["'none'"],
@@ -118,6 +121,10 @@ export function createApp(config, { dbFile = config.dbFile } = {}) {
   app.use('/vendor/leaflet', express.static(path.join(ROOT_DIR, 'node_modules', 'leaflet', 'dist'), { maxAge: '30d', immutable: true }));
   app.use(express.static(path.join(ROOT_DIR, 'public'), staticOpts));
   app.use('/uploads', express.static(config.uploadsDir, { maxAge: '30d', immutable: true, index: false, dotfiles: 'deny' }));
+
+  // Los planos del mapa van antes de sesiones y CSRF: cada vista pide decenas y no
+  // necesitan nada de eso.
+  app.use('/', planosRoutes(ctx));
 
   // Las páginas son dinámicas: que el navegador no reutilice HTML antiguo.
   app.use((req, res, next) => {

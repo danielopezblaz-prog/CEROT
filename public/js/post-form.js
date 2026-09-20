@@ -79,15 +79,10 @@
     status.textContent = 'Buscando dirección…';
     try {
       const c = map.getCenter();
-      const d = 0.06;
-      const viewbox = `${c.lng - d},${c.lat + d},${c.lng + d},${c.lat - d}`;
-      const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=es&countrycodes=es&viewbox=${viewbox}&bounded=1&q=${encodeURIComponent(q)}`;
-      let res = await fetch(url, { headers: { Accept: 'application/json' } });
-      let data = await res.json();
-      if (!data.length) {
-        res = await fetch(url.replace('&bounded=1', ''), { headers: { Accept: 'application/json' } });
-        data = await res.json();
-      }
+      // La búsqueda la hace el foro (src/routes/planos.js): primero cerca del barrio y,
+      // si no encuentra nada, en toda España.
+      const res = await fetch(`/planos/buscar?q=${encodeURIComponent(q)}&lat=${c.lat}&lng=${c.lng}`, { headers: { Accept: 'application/json' } });
+      const data = res.ok ? await res.json() : [];
       if (!data.length) {
         status.textContent = 'No se ha encontrado esa dirección. Prueba con «calle, número, Leganés» o marca el punto en el mapa.';
         return;

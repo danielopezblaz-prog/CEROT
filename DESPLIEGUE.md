@@ -190,6 +190,7 @@ la próxima vez que la abran.
 | Los comentarios no aparecen solos | El proxy está guardando el flujo en un búfer. Con el `Caddyfile` incluido no pasa; si usas nginx, hace falta `proxy_buffering off;` para `/api/eventos`. |
 | Todos los vecinos comparten el límite de peticiones | Falta `TRUST_PROXY=1` en `.env`. |
 | `EACCES: permission denied, mkdir '/data/uploads'` | La carpeta `data/` pertenece a `root` y el foro corre como usuario sin privilegios. Arréglalo con `chown -R 1000:1000 data` y vuelve a levantarlo. |
+| El mapa sale gris para todo el mundo | El servidor no llega a OpenStreetMap (los planos los pide el foro, no el navegador). En `docker compose logs foro` verás «No se ha podido obtener el plano». Suele ser un cortafuegos de salida o un proxy del proveedor. |
 
 ---
 

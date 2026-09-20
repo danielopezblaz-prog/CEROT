@@ -3,7 +3,8 @@
   'use strict';
   if (typeof L === 'undefined') return;
 
-  const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  // Los planos los sirve el propio foro (ver src/routes/planos.js).
+  const TILES = '/planos/{z}/{x}/{y}.png';
   const ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
   const COLORS = { abierta: '#dc2626', en_tramite: '#b45309', resuelta: '#15803d', cerrada: '#475569' };
 

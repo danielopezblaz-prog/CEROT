@@ -68,6 +68,28 @@ export const apiLimiter = limiter({
   message: 'Demasiadas peticiones desde esta conexión. Espera un momento.',
 });
 
+/* Planos del mapa. Una visita al mapa pide entre 20 y 60 planos, y moverse por el
+   barrio, unas decenas más; el tope frena a quien quiera descargar planos en masa
+   a través del foro (OpenStreetMap acabaría bloqueando al servidor). Responde en
+   texto plano porque va por delante de las sesiones y de las plantillas. */
+export const planosLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 3000,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  handler: (req, res) => res.status(429).type('text/plain').send('Demasiados planos pedidos desde esta conexión. Espera un momento.'),
+});
+
+/* Búsqueda de direcciones: cada una es una petición a Nominatim, que solo admite
+   una por segundo para todo el foro. */
+export const busquedaLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  handler: (req, res) => res.status(429).json({ error: 'Demasiadas búsquedas de direcciones desde esta conexión. Espera un momento.' }),
+});
+
 /* Conexiones en vivo (SSE). Cada una dura hasta media hora, así que un vecino
    abre dos o tres por hora. El tope es alto porque una IP compartida (un colegio,
    una comunidad con un único router) concentra muchas a la vez. */
