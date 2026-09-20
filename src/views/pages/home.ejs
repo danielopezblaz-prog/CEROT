@@ -2,9 +2,9 @@
 <section class="hero hero-foto">
   <div class="container hero-inner">
     <div class="hero-text">
-      <p class="eyebrow">Plataforma vecinal independiente · <%= site.municipality %></p>
+      <p class="eyebrow">Foro vecinal independiente · <%= site.municipality %></p>
       <h1>Lo que pasa en <em><%= site.name %></em>, contado por sus vecinos.</h1>
-      <p class="lead">Publica las incidencias y gestiones pendientes del barrio, apoya las de otros vecinos y genera informes con datos para que el Ayuntamiento no pueda mirar hacia otro lado.</p>
+      <p class="lead">Publica las incidencias y gestiones pendientes del barrio, apoya las de otros vecinos y genera informes con datos para que el Ayuntamiento de <%= site.municipality %> no pueda mirar hacia otro lado.</p>
       <div class="hero-actions">
         <a class="btn btn-accent btn-lg" href="/incidencias/nueva"><%- icon('plus') %> Publicar una incidencia</a>
         <a class="btn btn-outline-light btn-lg" href="/incidencias">Ver publicaciones <%- icon('arrow-right') %></a>
@@ -137,7 +137,7 @@
   <section class="section how">
     <div class="section-head section-head-center">
       <h2>Cómo funciona</h2>
-      <p class="lead">Cuatro pasos para que un problema del barrio deje de ser invisible.</p>
+      <p class="lead">Este es el foro vecinal de <%= site.name %>, en <%= site.municipality %>. Cuatro pasos para que un problema del barrio deje de ser invisible.</p>
     </div>
     <div class="steps">
       <div class="step">

@@ -194,6 +194,11 @@ export function createBusinessesService(db) {
     },
 
     /** Comercios de ejemplo, para el borrado del contenido de demostración. */
+    /** Negocios activos, para el mapa del sitio que leen los buscadores. */
+    forSitemap() {
+      return db.prepare("SELECT slug, updated_at FROM businesses WHERE status = 'activo' ORDER BY updated_at DESC LIMIT 5000").all();
+    },
+
     purgeDemo() {
       return db.transaction(() => {
         const ids = db.prepare('SELECT id FROM businesses WHERE is_demo = 1').all().map((r) => r.id);

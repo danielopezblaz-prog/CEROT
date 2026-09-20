@@ -37,7 +37,7 @@ export function authRoutes({ config, services }) {
 
   router.get('/registro', (req, res) => {
     if (req.user) return res.redirect('/');
-    res.render('pages/register', { pageMeta: { title: 'Crear cuenta' }, values: {}, errors: [], next: safeNext(req.query.next) });
+    res.render('pages/register', { pageMeta: { title: 'Crear cuenta', noindex: true }, values: {}, errors: [], next: safeNext(req.query.next) });
   });
 
   router.post('/registro', registerAttemptsLimiter, registerLimiter, async (req, res) => {
@@ -53,7 +53,7 @@ export function authRoutes({ config, services }) {
     if (!errors.length && services.users.findByEmail(values.email)) errors.push('Ya existe una cuenta con ese correo. ¿Quieres iniciar sesión?');
     const next = safeNext(req.body.next);
     if (errors.length) {
-      return res.status(422).render('pages/register', { pageMeta: { title: 'Crear cuenta' }, values, errors, next });
+      return res.status(422).render('pages/register', { pageMeta: { title: 'Crear cuenta', noindex: true }, values, errors, next });
     }
     const user = services.users.create({
       firstName: values.firstName,
@@ -71,7 +71,7 @@ export function authRoutes({ config, services }) {
 
   router.get('/acceder', (req, res) => {
     if (req.user) return res.redirect(safeNext(req.query.next));
-    res.render('pages/login', { pageMeta: { title: 'Iniciar sesión' }, values: {}, errors: [], next: safeNext(req.query.next) });
+    res.render('pages/login', { pageMeta: { title: 'Iniciar sesión', noindex: true }, values: {}, errors: [], next: safeNext(req.query.next) });
   });
 
   router.post('/acceder', loginLimiter, async (req, res) => {
@@ -81,7 +81,7 @@ export function authRoutes({ config, services }) {
     const user = await services.users.verify(email, password);
     if (!user) {
       return res.status(401).render('pages/login', {
-        pageMeta: { title: 'Iniciar sesión' },
+        pageMeta: { title: 'Iniciar sesión', noindex: true },
         values: { email },
         errors: ['Correo o contraseña incorrectos.'],
         next,
@@ -89,7 +89,7 @@ export function authRoutes({ config, services }) {
     }
     if (user.is_banned) {
       return res.status(403).render('pages/login', {
-        pageMeta: { title: 'Iniciar sesión' },
+        pageMeta: { title: 'Iniciar sesión', noindex: true },
         values: { email },
         errors: ['Esta cuenta está bloqueada. Si crees que es un error, contacta con la administración del foro.'],
         next,
@@ -111,7 +111,7 @@ export function authRoutes({ config, services }) {
   router.get('/perfil', requireAuth, (req, res) => {
     const posts = services.posts.list({ authorId: req.user.id, includeHidden: true, perPage: 50 });
     res.render('pages/profile', {
-      pageMeta: { title: 'Mi perfil' },
+      pageMeta: { title: 'Mi perfil', noindex: true },
       posts: posts.items,
       errors: [],
     });

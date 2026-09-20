@@ -194,6 +194,15 @@ la próxima vez que la abran.
 
 ---
 
+## Después de abrir: que Google la encuentre
+
+Todo lo técnico va ya dentro del foro (títulos, mapa del sitio, fichas para los
+buscadores). Lo que falta se hace una sola vez: dar de alta el dominio en Google
+Search Console y enviarle el mapa del sitio. Está explicado paso a paso en el
+README, apartado «Aparecer en Google».
+
+---
+
 ## Lo que todavía no tiene
 
 **Recuperación de contraseña por correo.** Si un vecino la olvida, hoy solo puede

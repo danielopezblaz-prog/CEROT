@@ -3,12 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <% const fullTitle = pageMeta && pageMeta.title ? `${pageMeta.title} · ${site.brand} ${site.name}` : `${site.brand} ${site.name} — Lo que pasa en el barrio, contado por sus vecinos`; %>
-  <% const description = (pageMeta && pageMeta.description) || site.description; %>
-  <% const ogImage = pageMeta && pageMeta.image ? absoluteUrl(pageMeta.image) : absoluteUrl('/img/og-default.png'); %>
+  <%
+    /* Lo que ven Google y las vistas previas de WhatsApp o Facebook. La portada
+       lleva el nombre del barrio y el municipio: es lo que la gente busca. */
+    const tituloPortada = `${site.brand} ${site.name} (${site.municipality}): incidencias, mapa y comercios del barrio`;
+    const fullTitle = pageMeta && pageMeta.title ? `${pageMeta.title} · ${site.brand} ${site.name}, ${site.municipality}` : tituloPortada;
+    const description = (pageMeta && pageMeta.description) || site.description;
+    const imagenPropia = Boolean(pageMeta && pageMeta.image);
+    const ogImage = imagenPropia ? absoluteUrl(pageMeta.image) : absoluteUrl('/img/og-default.png');
+    const ogTitle = (pageMeta && pageMeta.title) || `${site.brand} ${site.name} · ${site.municipality}`;
+    const sinIndice = Boolean((pageMeta && pageMeta.noindex) || locals.noindexAuto);
+  %>
   <title><%= fullTitle %></title>
   <meta name="description" content="<%= description %>">
-  <link rel="canonical" href="<%= absoluteUrl(currentPath) %>">
+  <% if (sinIndice) { %><meta name="robots" content="noindex, follow"><% } %>
+  <link rel="canonical" href="<%= canonicalUrl %>">
+  <% if (site.googleVerification) { %><meta name="google-site-verification" content="<%= site.googleVerification %>"><% } %>
+  <meta name="geo.region" content="ES-MD">
+  <meta name="geo.placename" content="<%= site.municipality %>">
+  <meta name="geo.position" content="<%= map.lat %>;<%= map.lng %>">
+  <meta name="ICBM" content="<%= map.lat %>, <%= map.lng %>">
   <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
   <meta name="mobile-web-app-capable" content="yes">
@@ -21,13 +35,26 @@
   <meta property="og:type" content="<%= (pageMeta && pageMeta.type) || 'website' %>">
   <meta property="og:site_name" content="<%= site.brand %> <%= site.name %>">
   <meta property="og:locale" content="es_ES">
-  <meta property="og:title" content="<%= (pageMeta && pageMeta.title) || `${site.brand} ${site.name}` %>">
+  <meta property="og:title" content="<%= ogTitle %>">
   <meta property="og:description" content="<%= description %>">
-  <meta property="og:url" content="<%= absoluteUrl(currentPath) %>">
+  <meta property="og:url" content="<%= canonicalUrl %>">
   <meta property="og:image" content="<%= ogImage %>">
-  <meta name="twitter:card" content="<%= pageMeta && pageMeta.image ? 'summary_large_image' : 'summary' %>">
+  <% if (!imagenPropia) { %>
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="<%= site.brand %> <%= site.name %>, <%= site.municipality %>">
+  <% } %>
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<%= ogTitle %>">
+  <meta name="twitter:description" content="<%= description %>">
+  <meta name="twitter:image" content="<%= ogImage %>">
   <link rel="alternate" type="application/rss+xml" title="Últimas publicaciones" href="/feed.xml">
+  <script type="application/ld+json"><%- jsonLd([...fichasSitio, ...((pageMeta && pageMeta.fichas) || [])]) %></script>
   <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <% if (locals.bodyClass === 'page-home') { %>
+  <link rel="preload" as="image" href="/img/portada.webp" media="(min-width: 861px)">
+  <link rel="preload" as="image" href="/img/portada-movil.webp" media="(max-width: 860px)">
+  <% } %>
   <link rel="stylesheet" href="/css/app.css?v=<%= assetVersion %>">
   <% if (locals.useMap) { %><link rel="stylesheet" href="/vendor/leaflet/leaflet.css"><% } %>
 </head>

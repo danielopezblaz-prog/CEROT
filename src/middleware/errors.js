@@ -4,7 +4,7 @@ export function notFound(req, res) {
   if (wantsJson(req)) return res.status(404).json({ error: 'No encontrado' });
   res.status(404);
   return res.render('pages/error', {
-    pageMeta: { title: 'Página no encontrada' },
+    pageMeta: { title: 'Página no encontrada', noindex: true },
     status: 404,
     message: 'La página que buscas no existe o se ha eliminado.',
   });
@@ -23,7 +23,7 @@ export function errorHandler(config) {
     if (wantsJson(req)) return res.status(status).json({ error: message });
     res.status(status);
     return res.render('pages/error', {
-      pageMeta: { title: status === 403 ? 'Acceso no permitido' : 'Error' },
+      pageMeta: { title: status === 403 ? 'Acceso no permitido' : 'Error', noindex: true },
       status,
       message,
       details: config.isProduction ? null : err.stack,

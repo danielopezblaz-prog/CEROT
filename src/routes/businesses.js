@@ -6,6 +6,7 @@ import { cleanString, toFloat, toInt } from '../utils/text.js';
 import { isIsoDate } from '../utils/filters.js';
 import { BUSINESS_CATEGORY_MAP, BUSINESS_CATEGORIES, OFFER_TYPES } from '../utils/constants.js';
 import { hoursFromForm, parseHours, emptyHours } from '../utils/hours.js';
+import { fichaNegocio, migas, textoPlano } from '../utils/seo.js';
 
 const MAX_GALLERY = 8;
 const MAX_PRODUCTS = 60;
@@ -142,8 +143,8 @@ export function businessRoutes({ config, services, uploader }) {
     };
     res.render('pages/businesses', {
       pageMeta: {
-        title: 'Comercios del barrio',
-        description: `Directorio de comercios, bares y servicios de ${config.site.name}, con sus ofertas y eventos.`,
+        title: `Comercios y negocios de ${config.site.name}`,
+        description: `Directorio de comercios, bares y servicios de ${config.site.name}, en ${config.site.municipality}: horarios, teléfonos, ofertas y eventos.`,
       },
       result,
       counts,
@@ -174,7 +175,7 @@ export function businessRoutes({ config, services, uploader }) {
     res.render('pages/offers', {
       pageMeta: {
         title: 'Ofertas y eventos del barrio',
-        description: `Ofertas del día, eventos y novedades de los comercios de ${config.site.name}.`,
+        description: `Ofertas del día, eventos y novedades de los comercios de ${config.site.name}, en ${config.site.municipality}.`,
       },
       result,
       filters: { type, category, page, isActive: Boolean(type || category) },
@@ -186,7 +187,7 @@ export function businessRoutes({ config, services, uploader }) {
   /* ---------- Alta y edición ---------- */
 
   const formLocals = (extra) => ({
-    pageMeta: { title: extra.mode === 'edit' ? 'Editar negocio' : 'Dar de alta un negocio' },
+    pageMeta: { title: extra.mode === 'edit' ? 'Editar negocio' : 'Dar de alta un negocio', noindex: true },
     categories: BUSINESS_CATEGORIES,
     maxGallery: MAX_GALLERY,
     maxMb: config.upload.maxMb,
@@ -264,14 +265,21 @@ export function businessRoutes({ config, services, uploader }) {
     const business = req.business;
     if (!req.user || req.user.id !== business.owner_id) services.businesses.incrementViews(business.id);
     const manage = canManage(req.user, business);
+    const hours = parseHours(business.hours);
+    const categoria = (BUSINESS_CATEGORY_MAP[business.category] || { name: 'Comercio' }).name;
     res.render('pages/business', {
       pageMeta: {
         title: business.name,
-        description: business.short_desc || `Comercio del barrio ${config.site.name}.`,
+        description: textoPlano(`${categoria} en ${config.site.name}, ${config.site.municipality}. ${business.short_desc || business.description || ''}`, 160),
         image: business.cover ? `/uploads/${business.cover}` : null,
+        noindex: business.status !== 'activo',
+        fichas: [
+          fichaNegocio(config, business, hours),
+          migas(config, [['Inicio', '/'], ['Negocios', '/negocios'], [categoria, `/negocios?categoria=${business.category}`], [business.name, `/negocios/${business.slug}`]]),
+        ],
       },
       business,
-      hours: parseHours(business.hours),
+      hours,
       images: services.businesses.images(business.id),
       offers: services.offers.forBusiness(business.id, { onlyCurrent: !manage }),
       products: services.products.forBusiness(business.id, { onlyAvailable: !manage }),
@@ -356,7 +364,7 @@ export function businessRoutes({ config, services, uploader }) {
   }
 
   const productsView = (req, extra = {}) => ({
-    pageMeta: { title: `Productos de ${req.business.name}` },
+    pageMeta: { title: `Productos de ${req.business.name}`, noindex: true },
     business: req.business,
     products: services.products.forBusiness(req.business.id),
     unnamed: services.products.countUnnamed(req.business.id),
@@ -467,7 +475,7 @@ export function businessRoutes({ config, services, uploader }) {
   /* ---------- Ofertas, eventos y novedades ---------- */
 
   const offerLocals = (extra) => ({
-    pageMeta: { title: extra.mode === 'edit' ? 'Editar publicación' : 'Nueva oferta o evento' },
+    pageMeta: { title: extra.mode === 'edit' ? 'Editar publicación' : 'Nueva oferta o evento', noindex: true },
     maxMb: config.upload.maxMb,
     ...extra,
   });

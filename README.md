@@ -321,6 +321,54 @@ que solo sirven HTML: se arrastra el contenido de `export/` a la carpeta públic
 Las teselas del mapa se guardan en `tools/.teselas-cache.json` la primera vez, para no
 volver a pedírselas a OpenStreetMap en cada exportación.
 
+## Aparecer en Google
+
+El foro ya le cuenta a Google todo lo que necesita, sin tocar nada:
+
+- Cada página lleva su título y su descripción con el nombre del barrio y el
+  municipio («Foro Vecinal Vereda de los Estudiantes (Leganés)…»).
+- Hay un mapa del sitio en `/sitemap.xml` con todas las publicaciones y negocios
+  visibles y su fecha, y `robots.txt` apunta a él.
+- Las publicaciones y los comercios llevan fichas estructuradas (schema.org): la
+  publicación con su autor, fecha, apoyos y comentarios; el comercio con su
+  dirección, horario, teléfono y enlaces. Así Google puede mostrarlos con más
+  detalle en los resultados.
+- Las páginas sin interés para un buscador no se indexan: acceso, registro,
+  perfil, formularios, resultados de búsqueda y errores. Los filtros de orden y
+  estado no crean páginas duplicadas.
+- Una sola dirección por página: `www.` y la barra final redirigen a la buena.
+
+Lo que Google no puede hacer solo es enterarse de que el foro existe y fiarse de
+él. Eso se hace una vez:
+
+1. **Search Console.** Entra en <https://search.google.com/search-console> con
+   una cuenta de Google y añade la propiedad. Si eliges el tipo **Dominio**
+   (`veredadelosestudiantes.es`), Google pide un registro **TXT** en el DNS: se
+   pega en el panel de Hostinger, en el mismo sitio donde se puso el registro A.
+   Si eliges **Prefijo de URL** (`https://veredadelosestudiantes.es`), vale la
+   «etiqueta HTML»: copia solo el código de `content="..."`, ponlo en el `.env`
+   del servidor como `GOOGLE_SITE_VERIFICATION=ese-codigo` y actualiza con
+   `bash scripts/actualizar.sh`. El foro lo pone en todas las páginas.
+2. **Envía el mapa del sitio.** En Search Console, apartado «Sitemaps», escribe
+   `sitemap.xml` y pulsa Enviar. A partir de ahí Google se entera solo de cada
+   publicación nueva. En «Inspección de URLs» puedes pedir que indexe la portada
+   ya, sin esperar.
+3. **Consigue enlaces.** Es lo que más pesa para «foro vecinal Leganés»: pide a
+   la asociación de vecinos, al AMPA, a la parroquia, a los comercios del
+   directorio y a la página de Facebook del barrio que enlacen a la web. Cada
+   comercio dado de alta puede poner el enlace de su ficha en su Instagram y en
+   su ficha de Google Maps.
+4. **Contenido de verdad y con constancia.** Google premia lo que se actualiza:
+   publicaciones con el nombre de la calle, fotos y seguimiento. Cada
+   publicación es una página más que puede aparecer al buscar, por ejemplo,
+   «farola rota calle X Leganés».
+
+Qué esperar: para «vereda de los estudiantes» la web debería salir arriba a las
+pocas semanas de que Google la indexe, porque el dominio y el nombre coinciden con
+lo que se busca. Para «foro vecinal Leganés» compite con otras webs y grupos; con
+enlaces del barrio y actividad se sube, pero nadie puede garantizar el primer
+puesto. Bing y DuckDuckGo leen el mismo mapa del sitio.
+
 ## Cuánta gente aguanta
 
 El foro trae dos herramientas para comprobarlo tú mismo, sin instalar nada:

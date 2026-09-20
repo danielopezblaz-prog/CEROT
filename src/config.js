@@ -57,9 +57,12 @@ export const config = {
     municipality: env('MUNICIPALITY', 'Leganés'),
     description: env(
       'SITE_DESCRIPTION',
-      'Plataforma vecinal independiente para publicar, apoyar y dar visibilidad a las incidencias y gestiones pendientes del barrio.'
+      'Foro vecinal independiente del barrio Vereda de los Estudiantes, en Leganés: incidencias, apoyos, mapa del barrio, informes para el Ayuntamiento y directorio de comercios.'
     ),
     contactEmail: env('CONTACT_EMAIL', ''),
+    // Código de Google Search Console (opcional). Con él Google confirma que el
+    // foro es tuyo y te enseña cómo lo ve. La alternativa es un registro TXT en el DNS.
+    googleVerification: env('GOOGLE_SITE_VERIFICATION', ''),
     legalOwner: env('LEGAL_OWNER', ''),
   },
   map: {

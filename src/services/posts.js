@@ -266,6 +266,11 @@ export function createPostsService(db) {
         .all(...params);
     },
 
+    /** Publicaciones visibles, para el mapa del sitio que leen los buscadores. */
+    forSitemap() {
+      return db.prepare('SELECT slug, updated_at FROM posts WHERE is_hidden = 0 ORDER BY updated_at DESC LIMIT 5000').all();
+    },
+
     countDemo() {
       return db.prepare('SELECT COUNT(*) AS c FROM posts WHERE is_demo = 1').get().c;
     },

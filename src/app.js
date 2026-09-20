@@ -131,6 +131,15 @@ export function createApp(config, { dbFile = config.dbFile } = {}) {
     res.set('Cache-Control', 'no-store');
     next();
   });
+  // Una sola dirección por página: «/incidencias/» manda a «/incidencias». Así
+  // Google no reparte el valor de una página entre dos direcciones.
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && req.path.length > 1 && req.path.endsWith('/')) {
+      const limpia = req.path.replace(/\/+$/, '') || '/';
+      return res.redirect(301, limpia + req.originalUrl.slice(req.path.length));
+    }
+    next();
+  });
   app.use(express.urlencoded({ extended: false, limit: '200kb' }));
   app.use(express.json({ limit: '50kb' }));
   app.use(createSessionMiddleware(db, config));
@@ -144,6 +153,11 @@ export function createApp(config, { dbFile = config.dbFile } = {}) {
   app.use('/', postRoutes(ctx));
   app.use('/', businessRoutes(ctx));
   app.use('/admin', adminRoutes(ctx));
+  // La API no son páginas: que los buscadores no la indexen.
+  app.use('/api', (req, res, next) => {
+    res.set('X-Robots-Tag', 'noindex');
+    next();
+  });
   app.use('/api', liveRoutes(ctx));
   app.use('/api', apiRoutes(ctx));
 

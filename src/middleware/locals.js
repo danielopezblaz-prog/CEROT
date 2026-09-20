@@ -9,6 +9,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT_DIR } from '../config.js';
 import { icon, categoryIcon, typeIcon, pinIcon, businessIcon, categoryIconBodies, businessIconBodies } from '../utils/icons.js';
+import { fichaSitio, jsonLd } from '../utils/seo.js';
 
 const numberFormat = new Intl.NumberFormat('es-ES');
 const BUSINESS_ICON_JSON = JSON.stringify(businessIconBodies());
@@ -34,8 +35,25 @@ function assetVersion() {
 const ASSET_VERSION = assetVersion();
 const CATEGORY_ICON_JSON = JSON.stringify(categoryIconBodies());
 
+/* Dirección canónica de una página: la ruta más los parámetros que cambian el
+   contenido de verdad (categoría, tipo y página). Orden, estado, fechas y
+   búsquedas no crean páginas nuevas para Google. */
+const PARAMETROS_CANONICOS = ['categoria', 'tipo', 'pagina'];
+function canonica(config, req) {
+  const p = new URLSearchParams();
+  for (const clave of PARAMETROS_CANONICOS) {
+    const valor = req.query[clave];
+    if (typeof valor !== 'string' || !valor) continue;
+    if (clave === 'pagina' && !(Number(valor) > 1)) continue;
+    p.set(clave, valor);
+  }
+  const s = p.toString();
+  return `${config.baseUrl}${req.path}${s ? `?${s}` : ''}`;
+}
+
 /** Variables y funciones disponibles en todas las vistas. */
 export function locals(config, services) {
+  const FICHAS_SITIO = fichaSitio(config);
   return (req, res, next) => {
     res.locals.site = config.site;
     res.locals.map = config.map;
@@ -45,6 +63,11 @@ export function locals(config, services) {
     res.locals.currentUrl = req.originalUrl;
     res.locals.query = req.query;
     res.locals.pageMeta = {};
+    res.locals.canonicalUrl = canonica(config, req);
+    // Los resultados de una búsqueda no son páginas para Google.
+    res.locals.noindexAuto = typeof req.query.q === 'string' && req.query.q.trim() !== '';
+    res.locals.fichasSitio = FICHAS_SITIO;
+    res.locals.jsonLd = jsonLd;
     res.locals.STATUSES = STATUSES;
     res.locals.TYPES = TYPES;
     res.locals.SORTS = SORTS;

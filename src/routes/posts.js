@@ -5,6 +5,7 @@ import { postLimiter, commentLimiter } from '../middleware/limits.js';
 import { cleanString, toFloat } from '../utils/text.js';
 import { isIsoDate } from '../utils/filters.js';
 import { STATUSES, TYPES, ENTITIES, REPORT_REASONS } from '../utils/constants.js';
+import { fichaPublicacion, migas, textoPlano } from '../utils/seo.js';
 
 /* Separador entre el texto compartido y su enlace. */
 const SALTO = '\n\n';
@@ -45,7 +46,7 @@ export function postRoutes({ config, services, uploader }) {
   const router = express.Router();
 
   const formLocals = (extra) => ({
-    pageMeta: { title: extra.mode === 'edit' ? 'Editar publicación' : 'Nueva publicación' },
+    pageMeta: { title: extra.mode === 'edit' ? 'Editar publicación' : 'Nueva publicación', noindex: true },
     maxImages: config.upload.maxImages,
     maxMb: config.upload.maxMb,
     ...extra,
@@ -122,9 +123,14 @@ export function postRoutes({ config, services, uploader }) {
     res.render('pages/post', {
       pageMeta: {
         title: post.title,
-        description: post.body.slice(0, 200),
+        description: textoPlano(post.body, 160),
         image: images[0] ? `/uploads/${images[0].filename}` : null,
         type: 'article',
+        noindex: Boolean(post.is_hidden),
+        fichas: [
+          fichaPublicacion(config, post, images, comments),
+          migas(config, [['Inicio', '/'], ['Publicaciones', '/incidencias'], [post.category_name, `/incidencias?categoria=${post.category_slug}`], [post.title, `/incidencias/${post.slug}`]]),
+        ],
       },
       post,
       images,
@@ -140,7 +146,7 @@ export function postRoutes({ config, services, uploader }) {
   });
 
   router.get('/incidencias/:slug/editar', requireAuth, loadPost, (req, res) => {
-    if (!canEditPost(req.user, req.post)) return res.status(403).render('pages/error', { pageMeta: { title: 'Sin permiso' }, status: 403, message: 'Solo el autor o la moderación pueden editar esta publicación.' });
+    if (!canEditPost(req.user, req.post)) return res.status(403).render('pages/error', { pageMeta: { title: 'Sin permiso', noindex: true }, status: 403, message: 'Solo el autor o la moderación pueden editar esta publicación.' });
     const p = req.post;
     const values = {
       type: p.type,

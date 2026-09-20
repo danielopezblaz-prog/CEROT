@@ -24,7 +24,7 @@ Para el usuario, `Iniciar.cmd` lo arranca con doble clic.
 |---|---|
 | `npm start` | Arranca el foro |
 | `npm run dev` | Igual, recargando al cambiar `src/` |
-| `npm test` | 41 pruebas (node:test, base de datos en memoria) |
+| `npm test` | 44 pruebas (node:test, base de datos en memoria) |
 | `npm run rastreo` | Recorre las 186 páginas con 3 perfiles y avisa de las rotas |
 | `npm run carga` | Mide peticiones por segundo, incluido el directo con 300 conexiones |
 | `npm run exportar` | Copia estática navegable en `export/` (ver README) |
@@ -52,6 +52,7 @@ src/db/              Esquema, migraciones (schema_version) y contenido de ejempl
 src/services/        Acceso a datos, uno por entidad
 src/services/events.js  Bus de avisos en vivo (en memoria, no toca la base)
 src/routes/          HTTP: index, auth, posts, businesses, admin, api, live, planos (mapa)
+src/utils/seo.js     Lo que se le cuenta a Google: fichas schema.org (JSON-LD) y textos
 src/middleware/      Sesiones (SQLite), CSRF, subida de fotos, límites, errores
 src/views/           Plantillas EJS
 public/              CSS, JS, fuentes, iconos, service worker, manifiesto
@@ -115,6 +116,12 @@ Son suyas y algunas tienen consecuencias legales:
   quedaba gris. La CSP ya no permite `tile.openstreetmap.org`: una URL externa en
   `map.js` o `app.js` la bloquea el navegador. Solo se sirven planos de la zona de
   Madrid y con tope por conexión.
+- **SEO:** los bloques `<script type="application/ld+json">` no se ejecutan, así
+  que la CSP sin `unsafe-inline` no los bloquea; son la única excepción a «ningún
+  script incrustado». La dirección canónica solo conserva `categoria`, `tipo` y
+  `pagina` (`src/middleware/locals.js`); el resto de filtros no crean páginas para
+  Google y las búsquedas (`?q=`) llevan `noindex`. El mapa del sitio es
+  `/sitemap.xml`, `robots.txt` apunta a él y la barra final redirige (301).
 - **Escribir ficheros:** los heredocs de Bash largos fallan en este equipo
   («unexpected EOF»). Usa la herramienta Write para ficheros de cierto tamaño.
 

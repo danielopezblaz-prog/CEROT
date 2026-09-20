@@ -35,9 +35,11 @@ export function indexRoutes({ config, services }) {
     const filters = parseFilters(req.query, services.categories);
     const result = services.posts.list({ ...filters, perPage: config.perPage });
     const supported = services.posts.supportedIds(req.user?.id, result.items.map((p) => p.id));
-    const title = filters.category ? `${filters.category.name}` : filters.type ? TYPES[filters.type].plural : 'Todas las publicaciones';
+    const title = filters.category
+      ? `${filters.category.name} en ${config.site.name}`
+      : filters.type ? `${TYPES[filters.type].plural} del barrio` : 'Incidencias y publicaciones del barrio';
     res.render('pages/feed', {
-      pageMeta: { title, description: `Publicaciones vecinales de ${config.site.name}: incidencias, propuestas, avisos y preguntas.` },
+      pageMeta: { title, description: `Incidencias, propuestas, avisos y preguntas de los vecinos de ${config.site.name} (${config.site.municipality}), con apoyos y seguimiento de cada reclamación.` },
       filters,
       result,
       supported,
@@ -49,7 +51,7 @@ export function indexRoutes({ config, services }) {
     const filters = parseFilters(req.query, services.categories);
     const count = services.posts.count({ ...filters, withLocation: true });
     res.render('pages/map', {
-      pageMeta: { title: 'Mapa del barrio', description: 'Todas las incidencias del barrio situadas en el mapa.' },
+      pageMeta: { title: 'Mapa de incidencias del barrio', description: `Todas las incidencias de ${config.site.name} (${config.site.municipality}) situadas en el mapa, por estado y categoría.` },
       filters,
       count,
       qs: (overrides) => filtersToQuery(filters, overrides),
@@ -106,15 +108,15 @@ export function indexRoutes({ config, services }) {
   });
 
   const STATIC_PAGES = {
-    '/normas': { view: 'pages/rules', title: 'Normas de la comunidad' },
-    '/sobre': { view: 'pages/about', title: 'Sobre este foro' },
-    '/recursos': { view: 'pages/resources', title: 'Recursos y contactos útiles', data: { recursos: RECURSOS, pasos: PASOS_RECLAMACION } },
-    '/aviso-legal': { view: 'pages/legal', title: 'Aviso legal' },
-    '/privacidad': { view: 'pages/privacy', title: 'Política de privacidad' },
-    '/app': { view: 'pages/app', title: 'Instalar la app en el móvil' },
+    '/normas': { view: 'pages/rules', title: 'Normas de la comunidad', description: 'Normas de convivencia del foro vecinal: qué se puede publicar, cómo tratar a los demás y qué hace la moderación.' },
+    '/sobre': { view: 'pages/about', title: 'Sobre este foro', description: `Qué es ${config.site.brand} ${config.site.name}, quién lo mantiene y para qué sirve: un foro vecinal independiente del barrio, en ${config.site.municipality}.` },
+    '/recursos': { view: 'pages/resources', title: 'Recursos y contactos útiles', description: `Teléfonos, direcciones y pasos para reclamar ante el Ayuntamiento de ${config.site.municipality} y otros organismos.`, data: { recursos: RECURSOS, pasos: PASOS_RECLAMACION } },
+    '/aviso-legal': { view: 'pages/legal', title: 'Aviso legal', description: 'Aviso legal del foro vecinal: titular, condiciones de uso y responsabilidad.' },
+    '/privacidad': { view: 'pages/privacy', title: 'Política de privacidad', description: 'Qué datos guarda el foro, para qué, durante cuánto tiempo y cómo ejercer tus derechos.' },
+    '/app': { view: 'pages/app', title: 'Instalar la app en el móvil', description: 'Instala el foro vecinal como una app en tu móvil, sin pasar por ninguna tienda y sin ocupar casi espacio.' },
   };
   for (const [route, page] of Object.entries(STATIC_PAGES)) {
-    router.get(route, (req, res) => res.render(page.view, { pageMeta: { title: page.title }, ...(page.data || {}) }));
+    router.get(route, (req, res) => res.render(page.view, { pageMeta: { title: page.title, description: page.description }, ...(page.data || {}) }));
   }
 
   router.get('/feed.xml', (req, res) => {
@@ -143,8 +145,24 @@ export function indexRoutes({ config, services }) {
 </rss>`);
   });
 
+  /* Mapa del sitio para los buscadores: portada, secciones, categorías con
+     contenido y cada publicación y negocio visibles, con su última fecha. */
+  router.get('/sitemap.xml', (req, res) => {
+    const fecha = (v) => (v ? toIso(v).slice(0, 10) : '');
+    const entradas = [['/'], ['/incidencias'], ['/mapa'], ['/negocios'], ['/negocios/ofertas'], ...Object.keys(STATIC_PAGES).map((r) => [r])];
+    const conteos = new Map(services.categories.withCounts().map((c) => [c.id, c.total]));
+    for (const c of services.categories.all()) if (conteos.get(c.id) > 0) entradas.push([`/incidencias?categoria=${c.slug}`]);
+    for (const p of services.posts.forSitemap()) entradas.push([`/incidencias/${p.slug}`, fecha(p.updated_at)]);
+    for (const b of services.businesses.forSitemap()) entradas.push([`/negocios/${b.slug}`, fecha(b.updated_at)]);
+    const cuerpo = entradas
+      .map(([ruta, ultima]) => `  <url><loc>${escapeHtml(`${config.baseUrl}${ruta}`)}</loc>${ultima ? `<lastmod>${ultima}</lastmod>` : ''}</url>`)
+      .join('\n');
+    res.set('Cache-Control', 'public, max-age=3600');
+    res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${cuerpo}\n</urlset>\n`);
+  });
+
   router.get('/robots.txt', (req, res) => {
-    res.type('text/plain').send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /estadisticas\nDisallow: /informe\nDisallow: /perfil\nDisallow: /acceder\nDisallow: /registro\nSitemap: ${config.baseUrl}/feed.xml\n`);
+    res.type('text/plain').send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /estadisticas\nDisallow: /informe\nDisallow: /perfil\nDisallow: /acceder\nDisallow: /registro\nDisallow: /api/\nDisallow: /planos/\nSitemap: ${config.baseUrl}/sitemap.xml\n`);
   });
 
   return router;
