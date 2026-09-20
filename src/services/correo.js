@@ -7,6 +7,8 @@ import { escapeHtml } from '../utils/text.js';
  * No hace falta instalar nada: se habla con el proveedor por su API de internet.
  * Se elige en el .env con CORREO_PROVEEDOR:
  *
+ *   smtp     El buzón de correo que ya tengas: el de tu dominio, el de Gmail,
+ *            el de Hostinger. Los correos salen desde tu propia cuenta.
  *   brevo    Brevo (antes Sendinblue). Gratis hasta 300 correos al día.
  *   resend   Resend. Gratis hasta 3.000 correos al mes.
  *   consola  No envía nada: escribe el correo en el registro del servidor.
@@ -14,6 +16,11 @@ import { escapeHtml } from '../utils/text.js';
  *
  * Vacío o sin clave, el foro se comporta como antes: no ofrece la recuperación
  * y le dice al vecino que escriba a la administración.
+ *
+ * Lo que NO se puede hacer es enviar desde el servidor sin pasar por ningún
+ * buzón: el puerto que usan los correos entre servidores viene cerrado en casi
+ * todos los alojamientos, y Gmail y Outlook tiran a la basura lo que llega de
+ * una máquina recién estrenada y sin historial.
  */
 
 const TIEMPO_MAXIMO_MS = 15000;
@@ -45,6 +52,27 @@ const PROVEEDORES = {
   },
 };
 
+/* Puertos del correo saliente:
+     465  va cifrado desde el primer momento
+     587  empieza en claro y se cifra enseguida (STARTTLS); es el más habitual */
+const PUERTO_CIFRADO_DIRECTO = 465;
+
+/** Traduce los fallos de un buzón propio (SMTP) a algo que se entienda. */
+function explicarSmtp(err) {
+  const codigo = String(err?.code || '');
+  const respuesta = String(err?.response || err?.message || '');
+  if (codigo === 'EAUTH' || /535|534|password not accepted/i.test(respuesta)) {
+    return `El buzón rechaza el usuario o la contraseña (CORREO_USUARIO / CORREO_CLAVE). Con Gmail hace falta una «contraseña de aplicación», no la de siempre. Detalle: ${respuesta}`;
+  }
+  if (codigo === 'ETIMEDOUT' || codigo === 'ESOCKET' || codigo === 'ECONNREFUSED' || codigo === 'ECONNECTION') {
+    return `No se ha podido conectar con el servidor de correo. Revisa CORREO_SERVIDOR y CORREO_PUERTO, y que el alojamiento no tenga cerrada la salida. Detalle: ${respuesta || codigo}`;
+  }
+  if (/550|553|relay|not permitted/i.test(respuesta)) {
+    return `El buzón no deja enviar con ese remitente. CORREO_REMITENTE suele tener que ser la misma dirección de CORREO_USUARIO. Detalle: ${respuesta}`;
+  }
+  return `El buzón de correo ha fallado: ${respuesta || codigo || 'sin detalle'}`;
+}
+
 /** Traduce los fallos del proveedor a algo que se entienda en el registro. */
 function explicar(estado, payload) {
   const detalle = payload?.message || payload?.error?.message || payload?.name || '';
@@ -59,10 +87,36 @@ function explicar(estado, payload) {
 }
 
 export function createMailService(config) {
-  const { proveedor, clave, remitente, nombre } = config.correo;
+  const { proveedor, clave, remitente, nombre, servidor, puerto, usuario } = config.correo;
   const ajustes = PROVEEDORES[proveedor];
-  // «consola» funciona siempre; los demás necesitan clave y remitente.
-  const activo = proveedor === 'consola' || Boolean(ajustes && clave && remitente);
+  const esSmtp = proveedor === 'smtp';
+  // «consola» funciona siempre; el buzón propio necesita servidor y cuenta; los
+  // demás, clave y remitente.
+  const activo =
+    proveedor === 'consola' ||
+    (esSmtp ? Boolean(servidor && usuario && clave && remitente) : Boolean(ajustes && clave && remitente));
+
+  /* El buzón propio se abre la primera vez que hace falta y se reutiliza: así
+     no se paga la conexión en cada correo ni se carga la librería si no se usa. */
+  let transporte = null;
+  async function abrirBuzon() {
+    if (!transporte) {
+      const { default: nodemailer } = await import('nodemailer');
+      transporte = nodemailer.createTransport({
+        host: servidor,
+        port: puerto,
+        secure: puerto === PUERTO_CIFRADO_DIRECTO,
+        requireTLS: puerto !== PUERTO_CIFRADO_DIRECTO,
+        auth: { user: usuario, pass: clave },
+        connectionTimeout: TIEMPO_MAXIMO_MS,
+        greetingTimeout: TIEMPO_MAXIMO_MS,
+        socketTimeout: TIEMPO_MAXIMO_MS,
+        // Solo lo usan las pruebas automáticas, para hablar con un buzón fingido.
+        ...(config.correo.opciones || {}),
+      });
+    }
+    return transporte;
+  }
 
   return {
     activo,
@@ -70,7 +124,7 @@ export function createMailService(config) {
     remitente,
     // Nombre para el aviso de privacidad: el vecino tiene derecho a saber por
     // dónde pasa su correo electrónico.
-    nombreProveedor: ajustes?.nombre || '',
+    nombreProveedor: esSmtp ? servidor : ajustes?.nombre || '',
 
     /** Envía un correo. Devuelve true si el proveedor lo ha aceptado. */
     async enviar({ para, asunto, texto, html }) {
@@ -78,6 +132,15 @@ export function createMailService(config) {
       if (proveedor === 'consola') {
         console.log(`\n[correo] Para: ${para}\n[correo] Asunto: ${asunto}\n${texto}\n`);
         return true;
+      }
+      if (esSmtp) {
+        try {
+          const buzon = await abrirBuzon();
+          await buzon.sendMail({ from: { name: nombre, address: remitente }, to: para, subject: asunto, text: texto, html });
+          return true;
+        } catch (err) {
+          throw new Error(explicarSmtp(err));
+        }
       }
       const respuesta = await fetch(config.correo.url || ajustes.url, {
         method: 'POST',

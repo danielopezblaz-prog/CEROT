@@ -94,10 +94,16 @@ export const config = {
     proveedor: env('CORREO_PROVEEDOR', '').trim().toLowerCase(),
     clave: env('CORREO_CLAVE', ''),
     // El remitente tiene que estar verificado en el proveedor o rechazará el envío.
-    remitente: env('CORREO_REMITENTE', '') || env('CONTACT_EMAIL', ''),
+    // Con «smtp» es, casi siempre, el propio buzón desde el que se envía.
+    remitente: env('CORREO_REMITENTE', '') || env('CORREO_USUARIO', '') || env('CONTACT_EMAIL', ''),
     nombre: env('CORREO_NOMBRE', '') || `${env('SITE_BRAND', 'Foro Vecinal')} ${env('SITE_NAME', 'Vereda de los Estudiantes')}`,
+    // Solo para CORREO_PROVEEDOR=smtp: el buzón de siempre (Gmail, el del dominio…).
+    servidor: env('CORREO_SERVIDOR', ''),
+    puerto: envNum('CORREO_PUERTO', 587),
+    usuario: env('CORREO_USUARIO', ''),
     // Se puede apuntar a otro servidor en las pruebas automáticas.
     url: env('CORREO_URL', ''),
+    opciones: null,
   },
   facebook: {
     pageId: env('FACEBOOK_PAGE_ID', ''),

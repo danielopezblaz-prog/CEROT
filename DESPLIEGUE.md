@@ -197,10 +197,12 @@ la próxima vez que la abran.
 
 ## Después de abrir: que los vecinos puedan recuperar su contraseña
 
-Hasta que no configures un servicio de correo, quien olvide su contraseña tendrá
-que pedírtela a ti. Se arregla en diez minutos con una cuenta gratuita de Brevo:
-está explicado paso a paso en el README, apartado «Recuperar la contraseña». El
-panel de moderación te avisa mientras esté sin configurar.
+Hasta que no le digas al foro por qué buzón enviar, quien olvide su contraseña
+tendrá que pedírtela a ti. Se arregla en diez minutos, y se puede hacer con un
+buzón que ya tengas (el del dominio o tu Gmail) o con una cuenta gratuita de
+Brevo. Está explicado paso a paso en el README, apartado «Recuperar la
+contraseña», incluido por qué el servidor no puede enviarlos él solo. El panel de
+moderación te avisa mientras esté sin configurar.
 
 ---
 

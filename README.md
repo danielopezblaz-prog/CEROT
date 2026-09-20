@@ -328,56 +328,108 @@ mi contraseña»**: escribe su correo, le llega un enlace y elige una nueva. El
 enlace caduca en una hora, solo vale una vez y, al usarlo, cierra la sesión de
 esa cuenta en el resto de dispositivos.
 
-Para que funcione hace falta decirle al foro **con qué servicio manda los
-correos**. Un servidor recién instalado no puede enviarlos por su cuenta: los
-demás proveedores los tirarían a la basura. Se hace una sola vez y es gratis.
+### ¿Por qué hay que decirle un buzón? ¿No puede enviarlos el servidor solo?
 
-### Con Brevo (recomendado, 300 correos al día gratis)
+Técnicamente sí; en la práctica no llegan. El puerto que usan los servidores de
+correo entre ellos viene **cerrado de fábrica en casi todos los alojamientos**,
+incluidos los VPS, para que nadie monte una máquina de spam en media hora. Y aun
+abriéndolo, Gmail, Outlook y el resto **tiran a la basura** lo que les llega de
+una máquina recién estrenada, sin historial y con una dirección IP de un centro
+de datos. Acabarías con los correos desapareciendo en silencio, que es
+justamente el fallo más difícil de detectar.
+
+Por eso el foro envía **a través de un buzón**. Tienes tres formas, de la más
+«tuya» a la más cómoda.
+
+### Opción A: tu propio buzón (lo más interno)
+
+Los correos salen de una cuenta que ya es tuya. No hay que darse de alta en
+ningún sitio nuevo.
+
+**Si tienes un buzón en tu dominio** (por ejemplo `foro@veredadelosestudiantes.es`,
+con el plan de correo de Hostinger), es la mejor opción: los vecinos ven una
+dirección del foro y Hostinger ya se encarga de que el correo esté autenticado.
+
+```
+CORREO_PROVEEDOR='smtp'
+CORREO_SERVIDOR='smtp.hostinger.com'
+CORREO_PUERTO='465'
+CORREO_USUARIO='foro@veredadelosestudiantes.es'
+CORREO_CLAVE='la contraseña de ese buzón'
+CORREO_REMITENTE='foro@veredadelosestudiantes.es'
+```
+
+**Si prefieres usar tu Gmail**, Google no acepta tu contraseña normal: hay que
+crear una «contraseña de aplicación». Entra en tu cuenta de Google, activa la
+verificación en dos pasos si no la tienes, y luego ve a
+<https://myaccount.google.com/apppasswords>. Te da 16 letras: esa es la clave.
+
+```
+CORREO_PROVEEDOR='smtp'
+CORREO_SERVIDOR='smtp.gmail.com'
+CORREO_PUERTO='587'
+CORREO_USUARIO='tucorreo@gmail.com'
+CORREO_CLAVE='las 16 letras de la contraseña de aplicación'
+CORREO_REMITENTE='tucorreo@gmail.com'
+```
+
+Dos avisos sobre Gmail: **tu dirección personal la verá cada vecino** que reciba
+un correo, y Google permite unos 500 envíos al día, de sobra para un barrio.
+`CORREO_REMITENTE` tiene que ser la misma dirección que `CORREO_USUARIO`, o
+Google la cambia por su cuenta.
+
+### Opción B: Brevo (gratis, 300 correos al día)
+
+Un servicio dedicado a enviar. Es lo más fiable si no tienes buzón en el dominio.
 
 1. Crea una cuenta gratuita en <https://www.brevo.com>.
 2. **Verifica el remitente.** En el panel, *Senders, Domains & Dedicated IPs* →
    *Senders* → *Add a sender*. Pon el correo desde el que quieres que salgan los
-   avisos (por ejemplo el tuyo). Brevo te manda un correo de confirmación: ábrelo
-   y pulsa el enlace.
+   avisos. Brevo te manda una confirmación: ábrela y pulsa el enlace.
 3. **Consigue la clave.** Arriba a la derecha, tu nombre → *SMTP & API* → pestaña
    *API Keys* → *Generate a new API key*. Cópiala entera; empieza por `xkeysib-`.
    Solo se enseña una vez.
-4. **Ponlo en el servidor.** Entra por SSH y edita el `.env`:
 
-   ```bash
-   cd /opt/foro && nano .env
-   ```
+```
+CORREO_PROVEEDOR='brevo'
+CORREO_CLAVE='xkeysib-lo-que-te-haya-dado-brevo'
+CORREO_REMITENTE='el-correo-que-has-verificado@ejemplo.com'
+```
 
-   Rellena estas tres líneas (deja las comillas):
+**Resend** (<https://resend.com>, 3.000 correos al mes) funciona igual: cambia
+`CORREO_PROVEEDOR` a `'resend'` y usa su clave, que empieza por `re_`.
 
-   ```
-   CORREO_PROVEEDOR='brevo'
-   CORREO_CLAVE='xkeysib-lo-que-te-haya-dado-brevo'
-   CORREO_REMITENTE='el-correo-que-has-verificado@ejemplo.com'
-   ```
+### Cómo se pone y cómo se prueba
 
-   Guarda con `Control+O`, Enter, y sal con `Control+X`.
-5. **Aplícalo:** `bash scripts/actualizar.sh`.
-6. **Pruébalo.** Abre `https://veredadelosestudiantes.es/recuperar`, pon tu
-   correo y mira si llega. Si no aparece, revisa la carpeta de spam.
+Entra por SSH al servidor y edita el fichero de configuración:
 
-Si algo falla, el motivo queda escrito en los registros del servidor y lo dice en
-castellano: `docker compose logs --tail 50 foro`.
+```bash
+cd /opt/foro && nano .env
+```
 
-### Con Resend (alternativa, 3.000 correos al mes gratis)
+Pega las líneas de la opción que hayas elegido (deja las comillas), guarda con
+`Control+O` y Enter, y sal con `Control+X`. Luego aplícalo:
 
-Igual, pero en <https://resend.com>: crea la cuenta, añade el dominio o usa el
-remitente de pruebas que te dan, copia la clave (empieza por `re_`) y pon
-`CORREO_PROVEEDOR='resend'`.
+```bash
+bash scripts/actualizar.sh
+```
+
+Para probarlo, abre `https://veredadelosestudiantes.es/recuperar`, pon tu correo
+y mira si llega. Revisa también la carpeta de spam. Si algo falla, el motivo
+queda escrito en castellano en los registros:
+
+```bash
+docker compose logs --tail 50 foro
+```
 
 ### Que no acabe en la carpeta de spam
 
-Con lo anterior ya se envía, pero los correos que salen de un dominio sin
-autenticar a menudo caen en «no deseado». Para evitarlo, el proveedor te da dos o
+Con un buzón de tu dominio o con Gmail, esto ya viene resuelto. Con Brevo o
+Resend, y para que los correos salgan con tu dominio, el proveedor te da dos o
 tres registros DNS (se llaman DKIM y SPF) que se pegan en Hostinger, en el mismo
-sitio donde pusiste el registro A del dominio. Brevo los enseña en *Senders,
-Domains & Dedicated IPs* → *Domains* → *Authenticate this domain*. Es el mismo
-procedimiento que hiciste para Google, y merece la pena.
+sitio donde pusiste el registro A. Brevo los enseña en *Senders, Domains &
+Dedicated IPs* → *Domains* → *Authenticate this domain*. Es el mismo
+procedimiento que hiciste para Google.
 
 ### Para probar en el ordenador de casa
 

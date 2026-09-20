@@ -24,7 +24,7 @@ Para el usuario, `Iniciar.cmd` lo arranca con doble clic.
 |---|---|
 | `npm start` | Arranca el foro |
 | `npm run dev` | Igual, recargando al cambiar `src/` |
-| `npm test` | 50 pruebas (node:test, base de datos en memoria) |
+| `npm test` | 53 pruebas (node:test, base de datos en memoria) |
 | `npm run rastreo` | Recorre las 186 páginas con 3 perfiles y avisa de las rotas |
 | `npm run carga` | Mide peticiones por segundo, incluido el directo con 300 conexiones |
 | `npm run exportar` | Copia estática navegable en `export/` (ver README) |
@@ -53,7 +53,7 @@ src/services/        Acceso a datos, uno por entidad
 src/services/events.js  Bus de avisos en vivo (en memoria, no toca la base)
 src/routes/          HTTP: index, auth, posts, businesses, admin, api, live, planos (mapa)
 src/utils/seo.js     Lo que se le cuenta a Google: fichas schema.org (JSON-LD) y textos
-src/services/correo.js       Envío de correo (Brevo/Resend por su API, sin dependencias)
+src/services/correo.js       Envío de correo (buzón propio por SMTP, o Brevo/Resend por su API)
 src/services/recuperacion.js Enlaces de «he olvidado mi contraseña»
 src/middleware/      Sesiones (SQLite), CSRF, subida de fotos, límites, errores
 src/views/           Plantillas EJS
@@ -123,6 +123,10 @@ Son suyas y algunas tienen consecuencias legales:
   los demás de esa persona y se cierran sus sesiones abiertas. La pantalla del
   enlace sobrescribe `canonicalUrl` para que el token no acabe en `og:url`.
   `/recuperar` contesta siempre lo mismo exista o no la cuenta.
+- **El servidor no puede mandar correos por su cuenta.** El puerto 25 saliente
+  viene cerrado en casi todos los alojamientos y Gmail descarta lo que llega de
+  una IP sin historial. Por eso `CORREO_PROVEEDOR` es obligatorio: `smtp` (buzón
+  propio, con `nodemailer`), `brevo`/`resend` (API con `fetch`) o `consola`.
 - **SEO:** los bloques `<script type="application/ld+json">` no se ejecutan, así
   que la CSP sin `unsafe-inline` no los bloquea; son la única excepción a «ningún
   script incrustado». La dirección canónica solo conserva `categoria`, `tipo` y
@@ -158,9 +162,9 @@ Pendiente antes de abrir al barrio:
 - **`LEGAL_OWNER` y `CONTACT_EMAIL`** en el `.env`: obligatorio por el RGPD.
 - **Cambiar la contraseña de administración** (al hacerlo se borra solo `data/PRIMER-ACCESO.txt`).
 - **Borrar el contenido de ejemplo** desde el panel.
-- **Configurar el envío de correo** (`CORREO_PROVEEDOR`, `CORREO_CLAVE`,
-  `CORREO_REMITENTE`). Sin ello, quien olvide su contraseña depende de que se la
-  cambies tú a mano. Ver README, «Recuperar la contraseña».
+- **Configurar el envío de correo.** Con el buzón propio (`smtp`) o con Brevo.
+  Sin ello, quien olvide su contraseña depende de que se la cambies tú a mano.
+  Ver README, «Recuperar la contraseña».
 
 Opcionales que se han dejado fuera a propósito: avisos push al móvil y modo
 oscuro (el CSS tiene el blanco escrito a mano en unos noventa sitios; hacerlo a
