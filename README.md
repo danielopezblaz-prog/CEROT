@@ -338,45 +338,64 @@ una máquina recién estrenada, sin historial y con una dirección IP de un cent
 de datos. Acabarías con los correos desapareciendo en silencio, que es
 justamente el fallo más difícil de detectar.
 
-Por eso el foro envía **a través de un buzón**. Tienes tres formas, de la más
-«tuya» a la más cómoda.
+Por eso el foro envía **a través de un buzón**. Hay tres formas y **todas son
+gratuitas**; cambia quién aparece como remitente y cuántos correos caben al día.
 
-### Opción A: tu propio buzón (lo más interno)
+### Cuánto cuesta cada opción
 
-Los correos salen de una cuenta que ya es tuya. No hay que darse de alta en
-ningún sitio nuevo.
+Las tres formas de enviar son **gratis**. Lo único que cuesta dinero es tener un
+buzón en tu propio dominio, y no hace ninguna falta para empezar.
 
-**Si tienes un buzón en tu dominio** (por ejemplo `foro@veredadelosestudiantes.es`,
-con el plan de correo de Hostinger), es la mejor opción: los vecinos ven una
-dirección del foro y Hostinger ya se encarga de que el correo esté autenticado.
+| Cómo se envía | Coste | Cuántos correos | Qué ve el vecino como remitente |
+|---|---|---|---|
+| Gmail nuevo para el foro | **Gratis** | Unos 500 al día | Foro Vecinal Vereda de los Estudiantes `<...@gmail.com>` |
+| Brevo | **Gratis** | 300 al día | La dirección que verifiques |
+| Resend | **Gratis** | 3.000 al mes | La dirección que verifiques |
+| Buzón de tu dominio | Unos euros al año | De sobra | `foro@veredadelosestudiantes.es` |
+
+Un foro de barrio manda un puñado de correos al mes: cualquiera de los cupos
+gratuitos sobra por mucho.
+
+### Opción A: un correo nuevo para el foro (gratis, y lo más sencillo)
+
+Crea una cuenta de **Gmail nueva y solo para el foro**, por ejemplo
+`foro.veredadelosestudiantes@gmail.com`. Es gratis, tarda cinco minutos y así tu
+correo personal no lo acaba viendo todo el barrio. El vecino verá como remitente
+**«Foro Vecinal Vereda de los Estudiantes»**, no una dirección suelta.
+
+Google no acepta tu contraseña normal para esto: hay que crear una «contraseña
+de aplicación».
+
+1. Entra en la cuenta nueva y activa la **verificación en dos pasos** (te la pide
+   en <https://myaccount.google.com/security>).
+2. Ve a <https://myaccount.google.com/apppasswords>, ponle un nombre cualquiera
+   («foro») y pulsa crear. Te da **16 letras**: esa es la clave.
+3. Pega esto en el `.env` del servidor, con tus datos:
 
 ```
 CORREO_PROVEEDOR='smtp'
+CORREO_SERVIDOR='smtp.gmail.com'
+CORREO_PUERTO='587'
+CORREO_USUARIO='foro.veredadelosestudiantes@gmail.com'
+CORREO_CLAVE='las 16 letras de la contraseña de aplicación'
+CORREO_REMITENTE='foro.veredadelosestudiantes@gmail.com'
+```
+
+`CORREO_REMITENTE` tiene que ser **la misma dirección** que `CORREO_USUARIO`, o
+Google la cambia por su cuenta. Si prefieres usar tu Gmail de siempre, funciona
+igual, pero cada vecino verá tu dirección personal.
+
+**Si algún día contratas el buzón del dominio** (el plan de correo de Hostinger,
+unos pocos euros al año), los correos saldrán de `foro@veredadelosestudiantes.es`,
+que queda mejor. Solo cambian estas líneas:
+
+```
 CORREO_SERVIDOR='smtp.hostinger.com'
 CORREO_PUERTO='465'
 CORREO_USUARIO='foro@veredadelosestudiantes.es'
 CORREO_CLAVE='la contraseña de ese buzón'
 CORREO_REMITENTE='foro@veredadelosestudiantes.es'
 ```
-
-**Si prefieres usar tu Gmail**, Google no acepta tu contraseña normal: hay que
-crear una «contraseña de aplicación». Entra en tu cuenta de Google, activa la
-verificación en dos pasos si no la tienes, y luego ve a
-<https://myaccount.google.com/apppasswords>. Te da 16 letras: esa es la clave.
-
-```
-CORREO_PROVEEDOR='smtp'
-CORREO_SERVIDOR='smtp.gmail.com'
-CORREO_PUERTO='587'
-CORREO_USUARIO='tucorreo@gmail.com'
-CORREO_CLAVE='las 16 letras de la contraseña de aplicación'
-CORREO_REMITENTE='tucorreo@gmail.com'
-```
-
-Dos avisos sobre Gmail: **tu dirección personal la verá cada vecino** que reciba
-un correo, y Google permite unos 500 envíos al día, de sobra para un barrio.
-`CORREO_REMITENTE` tiene que ser la misma dirección que `CORREO_USUARIO`, o
-Google la cambia por su cuenta.
 
 ### Opción B: Brevo (gratis, 300 correos al día)
 
