@@ -321,6 +321,76 @@ que solo sirven HTML: se arrastra el contenido de `export/` a la carpeta públic
 Las teselas del mapa se guardan en `tools/.teselas-cache.json` la primera vez, para no
 volver a pedírselas a OpenStreetMap en cada exportación.
 
+## Recuperar la contraseña
+
+Si un vecino olvida su contraseña, en la pantalla de acceso tiene **«He olvidado
+mi contraseña»**: escribe su correo, le llega un enlace y elige una nueva. El
+enlace caduca en una hora, solo vale una vez y, al usarlo, cierra la sesión de
+esa cuenta en el resto de dispositivos.
+
+Para que funcione hace falta decirle al foro **con qué servicio manda los
+correos**. Un servidor recién instalado no puede enviarlos por su cuenta: los
+demás proveedores los tirarían a la basura. Se hace una sola vez y es gratis.
+
+### Con Brevo (recomendado, 300 correos al día gratis)
+
+1. Crea una cuenta gratuita en <https://www.brevo.com>.
+2. **Verifica el remitente.** En el panel, *Senders, Domains & Dedicated IPs* →
+   *Senders* → *Add a sender*. Pon el correo desde el que quieres que salgan los
+   avisos (por ejemplo el tuyo). Brevo te manda un correo de confirmación: ábrelo
+   y pulsa el enlace.
+3. **Consigue la clave.** Arriba a la derecha, tu nombre → *SMTP & API* → pestaña
+   *API Keys* → *Generate a new API key*. Cópiala entera; empieza por `xkeysib-`.
+   Solo se enseña una vez.
+4. **Ponlo en el servidor.** Entra por SSH y edita el `.env`:
+
+   ```bash
+   cd /opt/foro && nano .env
+   ```
+
+   Rellena estas tres líneas (deja las comillas):
+
+   ```
+   CORREO_PROVEEDOR='brevo'
+   CORREO_CLAVE='xkeysib-lo-que-te-haya-dado-brevo'
+   CORREO_REMITENTE='el-correo-que-has-verificado@ejemplo.com'
+   ```
+
+   Guarda con `Control+O`, Enter, y sal con `Control+X`.
+5. **Aplícalo:** `bash scripts/actualizar.sh`.
+6. **Pruébalo.** Abre `https://veredadelosestudiantes.es/recuperar`, pon tu
+   correo y mira si llega. Si no aparece, revisa la carpeta de spam.
+
+Si algo falla, el motivo queda escrito en los registros del servidor y lo dice en
+castellano: `docker compose logs --tail 50 foro`.
+
+### Con Resend (alternativa, 3.000 correos al mes gratis)
+
+Igual, pero en <https://resend.com>: crea la cuenta, añade el dominio o usa el
+remitente de pruebas que te dan, copia la clave (empieza por `re_`) y pon
+`CORREO_PROVEEDOR='resend'`.
+
+### Que no acabe en la carpeta de spam
+
+Con lo anterior ya se envía, pero los correos que salen de un dominio sin
+autenticar a menudo caen en «no deseado». Para evitarlo, el proveedor te da dos o
+tres registros DNS (se llaman DKIM y SPF) que se pegan en Hostinger, en el mismo
+sitio donde pusiste el registro A del dominio. Brevo los enseña en *Senders,
+Domains & Dedicated IPs* → *Domains* → *Authenticate this domain*. Es el mismo
+procedimiento que hiciste para Google, y merece la pena.
+
+### Para probar en el ordenador de casa
+
+Con `CORREO_PROVEEDOR=consola` el foro no envía nada: escribe el correo entero,
+con su enlace, en la ventana negra. Sirve para probar el circuito sin dar de alta
+ninguna cuenta.
+
+### Si prefieres no configurar nada
+
+El foro sigue funcionando: la pantalla de acceso, en vez del enlace, le dice al
+vecino que escriba a la administración. Tú le pones una contraseña nueva desde
+**Panel → Usuarios**.
+
 ## Aparecer en Google
 
 El foro ya le cuenta a Google todo lo que necesita, sin tocar nada:
@@ -437,12 +507,12 @@ la cabecera `X-Accel-Buffering: no` para pedirlo.
 
 Al entrar como administrador, el panel muestra un recuadro **«Antes de abrir el foro al barrio»** con lo que falta por resolver. Desaparece solo cuando está todo hecho. Los mismos avisos salen en la consola al arrancar.
 
-Dos puntos son **imprescindibles** y, en modo producción, el foro **no arranca** sin ellos:
+Dos puntos salen en **rojo** porque son los graves:
 
-1. **Servir por HTTPS.** `BASE_URL` debe empezar por `https://`. Sin cifrado, las contraseñas de los vecinos viajan en claro por la red.
-2. **Borrar `data/PRIMER-ACCESO.txt`.** Es el fichero con la contraseña inicial de administración. Entra, cámbiala en Mi perfil y bórralo.
+1. **Servir por HTTPS.** `BASE_URL` debe empezar por `https://`. Sin cifrado, las contraseñas de los vecinos viajan en claro por la red. Es lo **único** que impide arrancar en modo producción.
+2. **Borrar `data/PRIMER-ACCESO.txt`.** Es el fichero con la contraseña inicial de administración. Se borra solo en cuanto cambias tu contraseña en Mi perfil. Sale en rojo, pero no impide arrancar: hacerlo dejaba el servidor reiniciándose sin parar tras cualquier actualización.
 
-Si necesitas arrancar igualmente, por ejemplo para una prueba interna, usa `PERMITIR_INSEGURO=1`. No lo dejes puesto.
+Si necesitas arrancar sin HTTPS, por ejemplo para una prueba interna, usa `PERMITIR_INSEGURO=1`. No lo dejes puesto.
 
 ### Qué protege el foro por dentro
 
@@ -504,7 +574,7 @@ Para participar hay que registrarse con **nombre, apellidos, teléfono, correo e
 | Apellidos completos | Solo la administración, en **Panel → Usuarios** |
 | Teléfono | Solo la administración |
 | Correo electrónico | Solo la administración |
-| Contraseña | Nadie: se guarda cifrada con bcrypt y no se puede recuperar, solo restablecer |
+| Contraseña | Nadie: se guarda cifrada con scrypt y no se puede recuperar, solo restablecer, desde el correo del vecino o a mano |
 
 Pedir apellidos y teléfono desanima a quien viene a molestar y permite comprobar que quien publica es del barrio. Mostrar solo la inicial evita exponer el apellido completo de un vecino en una página pública indexada por los buscadores.
 

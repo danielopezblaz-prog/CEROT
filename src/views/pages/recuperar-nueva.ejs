@@ -1,0 +1,35 @@
+<%- include('../partials/head', { bodyClass: 'page-auth' }) %>
+<div class="container container-auth">
+  <div class="auth-card card">
+    <h1>Elige una contraseña nueva</h1>
+    <% if (!valido) { %>
+      <div class="notice notice-error" role="alert">
+        <%- icon('warning') %>
+        <div>
+          <p><strong>Este enlace ya no sirve.</strong></p>
+          <p>Los enlaces caducan a la hora y solo se pueden usar una vez. Pide otro y úsalo nada más recibirlo.</p>
+        </div>
+      </div>
+      <p><a class="btn btn-primary btn-block btn-lg" href="/recuperar">Pedir un enlace nuevo</a></p>
+      <p class="auth-alt"><a href="/acceder">Volver a iniciar sesión</a></p>
+    <% } else { %>
+      <p class="lead">Ya está. Escribe la contraseña que quieras usar a partir de ahora<% if (correo) { %> para <strong><%= correo %></strong><% } %>.</p>
+      <% if (errors.length) { %>
+      <div class="notice notice-error" role="alert"><%- icon('warning') %><div><% for (const e of errors) { %><p><%= e %></p><% } %></div></div>
+      <% } %>
+      <form method="post" action="/recuperar/<%= token %>" class="form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label class="field"><span>Contraseña nueva</span>
+          <input type="password" name="contrasena" required minlength="8" autocomplete="new-password" autofocus>
+          <small class="hint">Mínimo 8 caracteres. Mejor una frase que recuerdes, por ejemplo «pan con tomate 42».</small>
+        </label>
+        <label class="field"><span>Repite la contraseña</span>
+          <input type="password" name="contrasena2" required minlength="8" autocomplete="new-password">
+        </label>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Guardar y entrar</button>
+      </form>
+      <p class="muted small">Al guardarla se cerrará la sesión en el resto de dispositivos.</p>
+    <% } %>
+  </div>
+</div>
+<%- include('../partials/foot') %>

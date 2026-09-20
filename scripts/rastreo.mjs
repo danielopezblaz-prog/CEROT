@@ -100,6 +100,7 @@ if (slugPub) {
 /* ---------- Rastreo ---------- */
 const SEMILLAS = ['/', '/incidencias', '/mapa', '/estadisticas', '/informe', '/informe.csv', '/negocios',
   '/negocios/ofertas', '/negocios/nuevo', '/recursos', '/normas', '/sobre', '/aviso-legal', '/privacidad',
+  '/acceder', '/registro', '/recuperar', '/sitemap.xml',
   '/feed.xml', '/robots.txt', '/manifest.webmanifest', '/api/marcadores', '/api/negocios', '/api/estadisticas',
   '/api/salud', '/perfil', '/admin', '/admin/publicaciones', '/admin/negocios', '/admin/denuncias', '/admin/usuarios'];
 

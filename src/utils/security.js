@@ -103,6 +103,13 @@ export function launchChecklist(config, services) {
       critical: false,
     },
     {
+      key: 'correo',
+      done: Boolean(services?.correo?.activo),
+      label: 'Configurar el envío de correo',
+      help: 'CORREO_PROVEEDOR, CORREO_CLAVE y CORREO_REMITENTE en el .env. Sin esto, quien olvide su contraseña solo puede recuperarla si se la cambias tú a mano.',
+      critical: false,
+    },
+    {
       key: 'proxy',
       done: !config.isProduction || config.trustProxy,
       label: 'Avisar de que hay un proxy delante',

@@ -85,6 +85,20 @@ export const config = {
   seedDemo: envBool('SEED_DEMO', true),
   trustProxy: envBool('TRUST_PROXY', false),
   perPage: 12,
+  /*
+   * Envío de correo. Solo se usa para el enlace de «he olvidado mi contraseña».
+   * Sin proveedor configurado, el foro no ofrece esa opción y le dice al vecino
+   * que escriba a la administración. Ver README, «Recuperar la contraseña».
+   */
+  correo: {
+    proveedor: env('CORREO_PROVEEDOR', '').trim().toLowerCase(),
+    clave: env('CORREO_CLAVE', ''),
+    // El remitente tiene que estar verificado en el proveedor o rechazará el envío.
+    remitente: env('CORREO_REMITENTE', '') || env('CONTACT_EMAIL', ''),
+    nombre: env('CORREO_NOMBRE', '') || `${env('SITE_BRAND', 'Foro Vecinal')} ${env('SITE_NAME', 'Vereda de los Estudiantes')}`,
+    // Se puede apuntar a otro servidor en las pruebas automáticas.
+    url: env('CORREO_URL', ''),
+  },
   facebook: {
     pageId: env('FACEBOOK_PAGE_ID', ''),
     token: env('FACEBOOK_PAGE_TOKEN', ''),

@@ -203,6 +203,20 @@ CREATE TABLE IF NOT EXISTS external_shares (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_shares_post_net ON external_shares(post_id, network);
 
+/* Enlaces para recuperar la contraseña. Se guarda la huella del enlace, nunca
+   el enlace: con lo que hay aquí no se puede entrar en ninguna cuenta. */
+CREATE TABLE IF NOT EXISTS password_resets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TEXT NOT NULL,
+  used_at TEXT,
+  ip TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_resets_user ON password_resets(user_id);
+CREATE INDEX IF NOT EXISTS idx_resets_created ON password_resets(created_at);
+
 CREATE TABLE IF NOT EXISTS sessions (
   sid TEXT PRIMARY KEY,
   sess TEXT NOT NULL,

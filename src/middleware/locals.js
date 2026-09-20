@@ -76,6 +76,9 @@ export function locals(config, services) {
     res.locals.ROLES = ROLES;
     res.locals.categories = services.categories.all();
     res.locals.facebookEnabled = services.facebook.enabled;
+    // ¿Puede el foro mandar correos? De eso depende ofrecer «he olvidado mi contraseña».
+    res.locals.hayCorreo = services.correo.activo;
+    res.locals.proveedorCorreo = services.correo.activo ? services.correo.nombreProveedor : '';
     res.locals.formatDate = formatDate;
     res.locals.formatDateTime = formatDateTime;
     res.locals.formatLong = formatLong;

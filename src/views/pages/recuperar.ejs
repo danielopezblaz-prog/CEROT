@@ -1,0 +1,35 @@
+<%- include('../partials/head', { bodyClass: 'page-auth' }) %>
+<div class="container container-auth">
+  <div class="auth-card card">
+    <h1>He olvidado mi contraseña</h1>
+    <% if (enviado) { %>
+      <div class="notice notice-success" role="status">
+        <%- icon('check') %>
+        <div>
+          <p><strong>Si hay una cuenta con ese correo, ya va camino de tu buzón.</strong></p>
+          <p>Abre el correo y pulsa el enlace para elegir una contraseña nueva. Caduca en <%= minutos %> minutos.</p>
+        </div>
+      </div>
+      <p class="muted small">¿No lo encuentras? Mira en la carpeta de correo no deseado. Si tampoco está, puede que esa dirección no tenga cuenta en el foro: <a href="/registro">crea una</a>.</p>
+      <p class="auth-alt"><a href="/acceder">Volver a iniciar sesión</a></p>
+    <% } else if (!hayCorreo) { %>
+      <p class="lead">De momento no se pueden enviar correos desde el foro.</p>
+      <p>Escribe a la administración<% if (site.contactEmail) { %>, a <a href="mailto:<%= site.contactEmail %>"><%= site.contactEmail %></a>,<% } %> y te ponen una contraseña nueva a mano.</p>
+      <p class="auth-alt"><a href="/acceder">Volver a iniciar sesión</a></p>
+    <% } else { %>
+      <p class="lead">Escribe el correo con el que te registraste y te mandamos un enlace para poner una contraseña nueva.</p>
+      <% if (errors.length) { %>
+      <div class="notice notice-error" role="alert"><%- icon('warning') %><div><% for (const e of errors) { %><p><%= e %></p><% } %></div></div>
+      <% } %>
+      <form method="post" action="/recuperar" class="form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label class="field"><span>Correo electrónico</span>
+          <input type="email" name="email" value="<%= values.email || '' %>" required maxlength="120" autocomplete="email" autofocus>
+        </label>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Enviarme el enlace</button>
+      </form>
+      <p class="auth-alt">¿Te has acordado? <a href="/acceder">Inicia sesión</a>.</p>
+    <% } %>
+  </div>
+</div>
+<%- include('../partials/foot') %>

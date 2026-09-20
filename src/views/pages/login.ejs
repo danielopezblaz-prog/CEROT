@@ -14,7 +14,11 @@
       <button type="submit" class="btn btn-primary btn-block btn-lg">Entrar</button>
     </form>
     <p class="auth-alt">¿Todavía no tienes cuenta? <a href="/registro<%= next && next !== '/' ? `?next=${encodeURIComponent(next)}` : '' %>">Regístrate gratis</a>.</p>
+    <% if (hayCorreo) { %>
+    <p class="auth-alt"><a href="/recuperar">He olvidado mi contraseña</a></p>
+    <% } else { %>
     <p class="muted small">¿Has olvidado la contraseña? Pide a la administración del foro que te la restablezca<% if (site.contactEmail) { %> escribiendo a <a href="mailto:<%= site.contactEmail %>"><%= site.contactEmail %></a><% } %>.</p>
+    <% } %>
   </div>
 </div>
 <%- include('../partials/foot') %>

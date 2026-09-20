@@ -191,6 +191,16 @@ la próxima vez que la abran.
 | Todos los vecinos comparten el límite de peticiones | Falta `TRUST_PROXY=1` en `.env`. |
 | `EACCES: permission denied, mkdir '/data/uploads'` | La carpeta `data/` pertenece a `root` y el foro corre como usuario sin privilegios. Arréglalo con `chown -R 1000:1000 data` y vuelve a levantarlo. |
 | El mapa sale gris para todo el mundo | El servidor no llega a OpenStreetMap (los planos los pide el foro, no el navegador). En `docker compose logs foro` verás «No se ha podido obtener el plano». Suele ser un cortafuegos de salida o un proxy del proveedor. |
+| El correo de recuperación no llega | Mira `docker compose logs --tail 50 foro`: el motivo sale en castellano. Casi siempre es que falta verificar el remitente en el proveedor, o que la clave `CORREO_CLAVE` ya no vale. Revisa también la carpeta de spam. |
+
+---
+
+## Después de abrir: que los vecinos puedan recuperar su contraseña
+
+Hasta que no configures un servicio de correo, quien olvide su contraseña tendrá
+que pedírtela a ti. Se arregla en diez minutos con una cuenta gratuita de Brevo:
+está explicado paso a paso en el README, apartado «Recuperar la contraseña». El
+panel de moderación te avisa mientras esté sin configurar.
 
 ---
 
@@ -205,8 +215,11 @@ README, apartado «Aparecer en Google».
 
 ## Lo que todavía no tiene
 
-**Recuperación de contraseña por correo.** Si un vecino la olvida, hoy solo puede
-resolverlo un administrador a mano desde el panel. Con cientos de vecinos vas a
-recibir esa petición cada semana, así que conviene resolverlo pronto: hace falta
-una cuenta de envío de correo (Brevo, Resend o el SMTP de tu hosting), que en el
-volumen de un barrio es gratis.
+**Avisos al móvil y modo oscuro.** Se han dejado fuera a propósito. El modo
+oscuro a medias queda peor que no tenerlo, y los avisos push obligan a pedir
+permiso al vecino en cuanto entra, que es justo lo contrario de lo que queremos
+en el primer minuto.
+
+**Publicar sin cuenta.** Hoy hay que registrarse para publicar. Es lo que
+sostiene el valor del informe («esto lo firman 40 vecinos») y lo que permite
+saber quién escribió qué si algo se tuerce.

@@ -91,7 +91,15 @@ export function createUsersService(db) {
     },
     setBanned(id, banned) {
       db.prepare('UPDATE users SET is_banned = ? WHERE id = ?').run(banned ? 1 : 0, id);
-      if (banned) db.prepare("DELETE FROM sessions WHERE sess LIKE ?").run(`%"userId":${Number(id)}%`);
+      if (banned) service.cerrarSesiones(id);
+    },
+    /**
+     * Cierra la sesión de esa persona en todos los dispositivos. Se usa al
+     * bloquear una cuenta y al cambiar la contraseña desde el correo: si alguien
+     * se había colado, deja de estar dentro.
+     */
+    cerrarSesiones(id) {
+      return db.prepare('DELETE FROM sessions WHERE sess LIKE ?').run(`%"userId":${Number(id)}%`).changes;
     },
     countAdmins() {
       return db.prepare("SELECT COUNT(*) AS c FROM users WHERE role = 'admin' AND is_banned = 0").get().c;

@@ -68,6 +68,22 @@ export const apiLimiter = limiter({
   message: 'Demasiadas peticiones desde esta conexión. Espera un momento.',
 });
 
+/* Recuperar la contraseña. Cada intento manda un correo de verdad y el cupo del
+   proveedor es limitado, así que el tope va corto. */
+export const recuperarLimiter = limiter({
+  windowMs: 60 * 60 * 1000,
+  limit: 12,
+  message: 'Se han pedido demasiados enlaces de recuperación desde esta conexión. Espera una hora y vuelve a intentarlo.',
+});
+
+/* Abrir el enlace recibido y guardar la contraseña nueva. Va más holgado porque
+   equivocarse eligiendo la contraseña no debe dejar a nadie fuera. */
+export const recuperarEnlaceLimiter = limiter({
+  windowMs: 60 * 60 * 1000,
+  limit: 60,
+  message: 'Demasiados intentos desde esta conexión. Espera un rato y vuelve a intentarlo.',
+});
+
 /* Planos del mapa. Una visita al mapa pide entre 20 y 60 planos, y moverse por el
    barrio, unas decenas más; el tope frena a quien quiera descargar planos en masa
    a través del foro (OpenStreetMap acabaría bloqueando al servidor). Responde en

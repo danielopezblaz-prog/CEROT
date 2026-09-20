@@ -2,9 +2,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import express from 'express';
 import { requireAuth } from '../middleware/auth.js';
-import { loginLimiter, registerLimiter, registerAttemptsLimiter } from '../middleware/limits.js';
+import { loginLimiter, registerLimiter, registerAttemptsLimiter, recuperarLimiter, recuperarEnlaceLimiter } from '../middleware/limits.js';
 import { cleanString, isEmail, displayName, normalizePhone } from '../utils/text.js';
 import { safePath, checkPassword } from '../utils/security.js';
+import { correoDeRecuperacion } from '../services/correo.js';
 
 /** Comprueba y limpia los datos personales del registro y del perfil. */
 export function validateProfile(body) {
@@ -100,6 +101,111 @@ export function authRoutes({ config, services }) {
     services.users.touchLogin(user.id);
     req.flash('success', `Hola de nuevo, ${user.name}.`);
     return res.redirect(next);
+  });
+
+  /* ---------- He olvidado mi contraseña ----------
+     El vecino escribe su correo, le llega un enlace que caduca en una hora y
+     con él elige una contraseña nueva. El foro contesta siempre lo mismo,
+     exista la cuenta o no: así nadie puede usar esta pantalla para averiguar
+     qué correos están registrados. */
+
+  const minutosEnlace = services.recuperacion.minutosValido;
+  const vistaRecuperar = (res, extra = {}) =>
+    res.render('pages/recuperar', {
+      pageMeta: { title: 'He olvidado mi contraseña', noindex: true },
+      hayCorreo: services.correo.activo,
+      minutos: minutosEnlace,
+      values: {},
+      errors: [],
+      enviado: false,
+      ...extra,
+    });
+
+  router.get('/recuperar', (req, res) => {
+    if (req.user) return res.redirect('/perfil');
+    return vistaRecuperar(res);
+  });
+
+  router.post('/recuperar', recuperarLimiter, async (req, res) => {
+    const email = cleanString(req.body.email, 120).toLowerCase();
+    if (!services.correo.activo) return vistaRecuperar(res);
+    if (!isEmail(email)) {
+      res.status(422);
+      return vistaRecuperar(res, { values: { email }, errors: ['El correo electrónico no es válido.'] });
+    }
+    const user = services.users.findByEmail(email);
+    if (user && !user.is_banned) {
+      const token = services.recuperacion.crear(user.id, req.ip);
+      // Sin token es que ya ha pedido varios en la última hora: no se manda otro.
+      if (token) {
+        const mensaje = correoDeRecuperacion({
+          site: config.site,
+          enlace: `${config.baseUrl}/recuperar/${token}`,
+          nombre: user.first_name || user.name,
+          minutos: minutosEnlace,
+        });
+        try {
+          await services.correo.enviar({ para: user.email, ...mensaje });
+        } catch (err) {
+          // El vecino ve el mismo mensaje de siempre; el motivo queda en el registro.
+          console.error('[correo] No se ha podido enviar el enlace de recuperación:', err.message);
+        }
+      }
+    }
+    return vistaRecuperar(res, { enviado: true });
+  });
+
+  /** Pinta la pantalla de contraseña nueva. El enlace nunca sale en las etiquetas. */
+  function vistaEnlace(req, res, { valido, correo = '', errors = [], estado = 200 }) {
+    res.status(estado);
+    // La dirección canónica no lleva el enlace: no debe acabar en las etiquetas
+    // que leen los buscadores ni en una vista previa compartida.
+    res.locals.canonicalUrl = `${config.baseUrl}/recuperar`;
+    return res.render('pages/recuperar-nueva', {
+      pageMeta: { title: 'Elige una contraseña nueva', noindex: true },
+      token: req.params.token,
+      valido,
+      correo,
+      errors,
+    });
+  }
+
+  router.get('/recuperar/:token', recuperarEnlaceLimiter, (req, res) => {
+    const peticion = services.recuperacion.buscar(req.params.token);
+    if (!peticion) return vistaEnlace(req, res, { valido: false, estado: 410 });
+    return vistaEnlace(req, res, { valido: true, correo: services.users.findById(peticion.user_id)?.email || '' });
+  });
+
+  router.post('/recuperar/:token', recuperarEnlaceLimiter, async (req, res) => {
+    const peticion = services.recuperacion.buscar(req.params.token);
+    if (!peticion) return vistaEnlace(req, res, { valido: false, estado: 410 });
+    const user = services.users.findById(peticion.user_id);
+    if (!user) return vistaEnlace(req, res, { valido: false, estado: 410 });
+
+    const password = String(req.body.contrasena || '');
+    const errors = [];
+    const passwordError = checkPassword(password, {
+      email: user.email,
+      firstName: user.first_name || '',
+      lastName: user.last_name || '',
+    });
+    if (passwordError) errors.push(passwordError);
+    if (password !== String(req.body.contrasena2 || '')) errors.push('Las contraseñas no coinciden.');
+    if (errors.length) return vistaEnlace(req, res, { valido: true, correo: user.email, errors, estado: 422 });
+
+    // Se gasta el enlace antes de tocar la contraseña: si dos pestañas lo envían
+    // a la vez, solo una sigue adelante.
+    if (!services.recuperacion.consumir(req.params.token)) return vistaEnlace(req, res, { valido: false, estado: 410 });
+    await services.users.setPassword(user.id, password);
+    // Fuera las sesiones abiertas en otros sitios, por si alguien se había colado.
+    services.users.cerrarSesiones(user.id);
+    if (user.role === 'admin') await fs.rm(path.join(config.dataDir, 'PRIMER-ACCESO.txt'), { force: true });
+
+    await regenerate(req);
+    req.session.userId = user.id;
+    services.users.touchLogin(user.id);
+    req.flash('success', `Listo, ${user.name}. Tu contraseña nueva ya funciona.`);
+    return res.redirect('/');
   });
 
   router.post('/salir', async (req, res) => {

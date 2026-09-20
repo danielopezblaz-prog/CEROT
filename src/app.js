@@ -17,6 +17,8 @@ import { createBusinessesService } from './services/businesses.js';
 import { createOffersService } from './services/offers.js';
 import { createProductsService } from './services/products.js';
 import { createEventsService } from './services/events.js';
+import { createMailService } from './services/correo.js';
+import { createRecoveryService } from './services/recuperacion.js';
 import { createSessionMiddleware } from './middleware/session.js';
 import { flash } from './middleware/flash.js';
 import { csrf } from './middleware/csrf.js';
@@ -48,8 +50,13 @@ export function createApp(config, { dbFile = config.dbFile } = {}) {
     offers: createOffersService(db),
     products: createProductsService(db),
     events: createEventsService(),
+    correo: createMailService(config),
+    recuperacion: createRecoveryService(db),
   };
   const seed = runSeed(db, services, config);
+  // Los enlaces de recuperación caducados se borran solos.
+  services.recuperacion.limpiar();
+  setInterval(() => services.recuperacion.limpiar(), 24 * 60 * 60 * 1000).unref();
   const uploader = createUploader(config);
   const ctx = { config, db, services, uploader };
 
