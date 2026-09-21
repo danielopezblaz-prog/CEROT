@@ -138,16 +138,12 @@ test('sin servidor o sin cuenta, el buzón propio no se da por configurado', asy
   assert.equal(servicio({ remitente: '' }).activo, false);
 });
 
-test('cuando Brevo bloquea por la dirección del servidor, no manda a cambiar la clave', async () => {
-  // Brevo contesta 401 tanto si la clave es mala como si no conoce la IP, así
-  // que sin distinguirlo el aviso mandaba a generar otra clave, que no arregla nada.
+/** Finge a Brevo devolviendo el fallo que se le indique. */
+async function conBrevoQueFalla(estado, payload, comprobar) {
   const brevo = http.createServer((req, res) => {
-    res.statusCode = 401;
+    res.statusCode = estado;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({
-      code: 'unauthorized',
-      message: 'We have detected you are using an unrecognised IP address 187.127.68.187. If you performed this action make sure to add the new IP address in this list: https://app.brevo.com/security/authorised_ips',
-    }));
+    res.end(JSON.stringify(payload));
   });
   brevo.listen(0, '127.0.0.1');
   await new Promise((r) => brevo.once('listening', r));
@@ -158,16 +154,37 @@ test('cuando Brevo bloquea por la dirección del servidor, no manda a cambiar la
   try {
     await assert.rejects(
       () => correo.enviar({ para: 'daniel@ejemplo.es', asunto: 'Hola', texto: 'Hola', html: '<p>Hola</p>' }),
-      (err) => {
-        assert.match(err.message, /no conoce la dirección de este servidor \(187\.127\.68\.187\)/);
-        assert.match(err.message, /authorised_ips/);
-        assert.doesNotMatch(err.message, /Genera una nueva/, 'cambiar la clave no arreglaría esto');
-        return true;
-      }
+      (err) => comprobar(err) ?? true
     );
   } finally {
     brevo.close();
   }
+}
+
+test('cuando Brevo bloquea por la dirección del servidor, no manda a cambiar la clave', async () => {
+  // Brevo contesta 401 tanto si la clave es mala como si no conoce la IP, así
+  // que sin distinguirlo el aviso mandaba a generar otra clave, que no arregla nada.
+  await conBrevoQueFalla(
+    401,
+    { code: 'unauthorized', message: 'We have detected you are using an unrecognised IP address 187.127.68.187. If you performed this action make sure to add the new IP address in this list: https://app.brevo.com/security/authorised_ips' },
+    (err) => {
+      assert.match(err.message, /no conoce la dirección de este servidor \(187\.127\.68\.187\)/);
+      assert.match(err.message, /authorised_ips/);
+      assert.doesNotMatch(err.message, /Genera una nueva/, 'cambiar la clave no arreglaría esto');
+    }
+  );
+});
+
+test('si la dirección de destino está mal escrita, lo dice en vez de culpar al remitente', async () => {
+  await conBrevoQueFalla(
+    400,
+    { code: 'invalid_parameter', message: 'email is not valid in to' },
+    (err) => {
+      assert.match(err.message, /dirección de destino no es válida/);
+      assert.match(err.message, /gmial/, 'pone el ejemplo de errata más habitual');
+      assert.doesNotMatch(err.message, /remitente/, 'el remitente no tiene la culpa aquí');
+    }
+  );
 });
 
 test('si el buzón no contesta, el motivo se explica en castellano', async () => {

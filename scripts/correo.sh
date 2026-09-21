@@ -49,6 +49,22 @@ preguntar() {
   done
 }
 
+# Pregunta una dirección de correo. Quita espacios, la pasa a minúsculas y
+# comprueba que al menos tenga forma de dirección: un paseo de más aquí ahorra
+# un «no me llega» que luego cuesta media hora encontrar.
+preguntar_correo() {
+  local destino="$1" texto="$2" defecto="${3:-}" valor=''
+  while true; do
+    preguntar valor "$texto" "$defecto"
+    valor="$(printf '%s' "$valor" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+    if printf '%s' "$valor" | grep -qE '^[^@]+@[^@.]+\.[^@]+$'; then
+      printf -v "$destino" '%s' "$valor"
+      return 0
+    fi
+    rojo "  «$valor» no tiene forma de dirección de correo. Repásala."
+  done
+}
+
 # Lee un valor del .env, con o sin comillas.
 leer_env() {
   sed -n "s/^$1=['\"]\{0,1\}\([^'\"]*\)['\"]\{0,1\}[[:space:]]*$/\1/p" .env | head -1
@@ -75,7 +91,8 @@ ACTUAL="$(leer_env CORREO_PROVEEDOR)"
 if [ "${1:-}" = '--probar' ]; then
   [ -n "$(leer_env CORREO_PROVEEDOR)" ] || abortar 'Todavía no hay correo configurado. Ejecuta:  bash scripts/correo.sh'
   titulo 'Prueba de envío'
-  preguntar DESTINO '¿A qué dirección te mando el correo de prueba?' "$(leer_env ADMIN_EMAIL)"
+  preguntar_correo DESTINO '¿A qué dirección te mando el correo de prueba?' "$(leer_env ADMIN_EMAIL)"
+  gris "Se lo mando a: $DESTINO"
   echo
   if docker compose exec -T -e "DESTINO_PRUEBA=$DESTINO" foro \
        node --disable-warning=ExperimentalWarning scripts/probar-correo.mjs; then
@@ -128,7 +145,7 @@ Antes de seguir necesitas dos cosas de esa cuenta de Gmail:
 Ojo: la contraseña de aplicación NO es la contraseña con la que entras en Gmail.
 FIN
     echo
-    preguntar USUARIO 'Dirección de Gmail del foro (por ejemplo foro.vereda@gmail.com)'
+    preguntar_correo USUARIO 'Dirección de Gmail del foro (por ejemplo foro.vereda@gmail.com)'
     preguntar CLAVE 'Contraseña de aplicación (las 16 letras; puedes pegarla con espacios)'
     CLAVE="${CLAVE// /}"
     if [ "${#CLAVE}" -ne 16 ]; then
@@ -148,7 +165,7 @@ FIN
     echo
     preguntar SERVIDOR 'Servidor de correo saliente' 'smtp.hostinger.com'
     preguntar PUERTO 'Puerto (465 cifrado, 587 el habitual)' '465'
-    preguntar USUARIO 'Dirección de correo completa'
+    preguntar_correo USUARIO 'Dirección de correo completa'
     preguntar CLAVE 'Contraseña de ese buzón'
     poner_env CORREO_PROVEEDOR 'smtp'
     poner_env CORREO_SERVIDOR "$SERVIDOR"
@@ -171,7 +188,7 @@ Antes de seguir necesitas dos cosas de Brevo (https://www.brevo.com):
 FIN
     echo
     preguntar CLAVE 'Clave de Brevo (xkeysib-...)'
-    preguntar REMITENTE 'Dirección verificada en Brevo, desde la que saldrán los correos'
+    preguntar_correo REMITENTE 'Dirección verificada en Brevo, desde la que saldrán los correos'
     poner_env CORREO_PROVEEDOR 'brevo'
     poner_env CORREO_CLAVE "$CLAVE"
     poner_env CORREO_REMITENTE "$REMITENTE"
@@ -211,7 +228,8 @@ if [ "$OPCION" = '4' ]; then
 fi
 
 titulo 'Prueba de envío'
-preguntar DESTINO '¿A qué dirección te mando el correo de prueba?' "${ADMIN:-}"
+preguntar_correo DESTINO '¿A qué dirección te mando el correo de prueba?' "${ADMIN:-}"
+gris "Se lo mando a: $DESTINO"
 echo
 if docker compose exec -T -e "DESTINO_PRUEBA=$DESTINO" foro \
      node --disable-warning=ExperimentalWarning scripts/probar-correo.mjs; then

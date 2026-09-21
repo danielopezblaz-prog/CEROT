@@ -24,7 +24,7 @@ Para el usuario, `Iniciar.cmd` lo arranca con doble clic.
 |---|---|
 | `npm start` | Arranca el foro |
 | `npm run dev` | Igual, recargando al cambiar `src/` |
-| `npm test` | 55 pruebas (node:test, base de datos en memoria) |
+| `npm test` | 56 pruebas (node:test, base de datos en memoria) |
 | `npm run rastreo` | Recorre las 186 páginas con 3 perfiles y avisa de las rotas |
 | `npm run carga` | Mide peticiones por segundo, incluido el directo con 300 conexiones |
 | `npm run exportar` | Copia estática navegable en `export/` (ver README) |

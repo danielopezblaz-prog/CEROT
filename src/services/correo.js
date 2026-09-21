@@ -87,6 +87,11 @@ function explicar(estado, payload) {
   if (estado === 401 || estado === 403) {
     return `El proveedor de correo rechaza la clave (CORREO_CLAVE). Genera una nueva y vuelve a ponerla en el .env. Detalle: ${detalle || 'sin detalle'}`;
   }
+  // Un 400 puede ser por el remitente o por el destinatario. Decirlo mal manda a
+  // revisar el panel del proveedor cuando lo que hay es una dirección mal escrita.
+  if (/\bin to\b|to\.email|recipient|destinatar/i.test(detalle)) {
+    return `El proveedor dice que la dirección de destino no es válida. Repásala letra a letra: lo más habitual es una errata en el dominio, por ejemplo «gmial» en vez de «gmail». Detalle: ${detalle}`;
+  }
   if (estado === 422 || estado === 400) {
     return `El proveedor no acepta el remitente «CORREO_REMITENTE». Suele ser que falta verificarlo en su panel. Detalle: ${detalle || 'sin detalle'}`;
   }
