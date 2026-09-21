@@ -456,10 +456,16 @@ volver a escribir la clave.
 cd /opt/foro && bash scripts/correo.sh --probar
 ```
 
-Un tropiezo habitual con Brevo: bloquea las peticiones que llegan desde una
-dirección IP que no ha visto antes, y al principio la de tu servidor lo es. Se
-añade una vez en <https://app.brevo.com/security/authorised_ips> y listo. El foro
-lo detecta y te lo dice con esas palabras, sin mandarte a cambiar la clave.
+Dos tropiezos habituales con Brevo:
+
+- **Bloquea las peticiones que llegan de una dirección IP que no ha visto
+  antes**, y al principio la de tu servidor lo es. Se añade una vez en
+  <https://app.brevo.com/security/authorised_ips>. El foro reconoce ese fallo y
+  te lo dice con esas palabras, sin mandarte a cambiar la clave.
+- **No pongas un remitente acabado en `@gmail.com`.** Brevo lo acepta y luego el
+  correo no llega a ninguna parte: Gmail descarta lo que dice venir de
+  `gmail.com` sin haber salido de los servidores de Google. Con Brevo o Resend el
+  remitente tiene que ser de tu dominio. Ver el apartado siguiente.
 
 Todo queda también en los registros:
 
@@ -470,14 +476,27 @@ docker compose logs --tail 50 foro
 Y si prefieres hacerlo a mano, las líneas van en `/opt/foro/.env` y se aplican
 con `bash scripts/actualizar.sh`.
 
-### Que no acabe en la carpeta de spam
+### Enviar desde tu dominio con Brevo o Resend
 
-Con un buzón de tu dominio o con Gmail, esto ya viene resuelto. Con Brevo o
-Resend, y para que los correos salgan con tu dominio, el proveedor te da dos o
-tres registros DNS (se llaman DKIM y SPF) que se pegan en Hostinger, en el mismo
-sitio donde pusiste el registro A. Brevo los enseña en *Senders, Domains &
-Dedicated IPs* → *Domains* → *Authenticate this domain*. Es el mismo
-procedimiento que hiciste para Google.
+Con estos proveedores el remitente **tiene que ser de tu dominio**, no un Gmail
+ni un Hotmail. Se autoriza una sola vez y no hace falta contratar buzón: para
+*enviar* desde `foro@veredadelosestudiantes.es` basta con autenticar el dominio.
+
+1. En Brevo, *Senders, Domains & Dedicated IPs* → pestaña **Domains** →
+   **Authenticate this domain**. Escribe `veredadelosestudiantes.es`.
+2. Te da dos o tres registros DNS (se llaman DKIM y SPF). Pégalos en Hostinger,
+   en el mismo sitio donde pusiste el registro A. Es el mismo procedimiento que
+   hiciste para Google Search Console.
+3. Vuelve a Brevo y pulsa verificar. Puede tardar unos minutos.
+4. Añade `foro@veredadelosestudiantes.es` como remitente y ponlo en el foro con
+   `bash scripts/correo.sh`.
+
+Además de que los correos lleguen, esto es lo que evita que acaben en la carpeta
+de spam.
+
+**¿Y si un vecino responde a ese correo?** No se pierde. El foro pone tu
+`CONTACT_EMAIL` como dirección de respuesta, así que la contestación te llega a
+tu buzón de siempre aunque en `foro@veredadelosestudiantes.es` no haya nadie.
 
 ### Para probar en el ordenador de casa
 

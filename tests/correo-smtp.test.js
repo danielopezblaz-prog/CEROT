@@ -119,6 +119,20 @@ test('el correo sale por el buzón propio, con su remitente y su enlace', async 
   assert.match(entregado.datos, /Subject: .*(contrase|Recupera|=\?)/i);
 });
 
+test('las respuestas van al correo de contacto, aunque se envíe desde otra dirección', async () => {
+  // Se puede enviar desde foro@tudominio.es sin tener buzón ahí; si un vecino
+  // contesta, la respuesta no debe perderse.
+  const correo = servicio({ remitente: 'foro@veredadelosestudiantes.es' });
+  assert.equal(correo.responderA, config.site.contactEmail || '');
+  await correo.enviar({ para: 'marta@ejemplo.es', asunto: 'Hola', texto: 'Hola', html: '<p>Hola</p>' });
+  const entregado = recibidos.at(-1);
+  if (config.site.contactEmail) {
+    assert.match(entregado.datos, new RegExp(`^Reply-To: ${config.site.contactEmail}$`, 'm'));
+  } else {
+    assert.doesNotMatch(entregado.datos, /^Reply-To:/m, 'sin correo de contacto no se inventa ninguno');
+  }
+});
+
 test('el correo de prueba dice en una línea que el envío ya funciona', async () => {
   const correo = servicio();
   const mensaje = correoDePrueba({ site: config.site });

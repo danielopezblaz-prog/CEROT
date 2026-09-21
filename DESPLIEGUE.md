@@ -193,6 +193,7 @@ la próxima vez que la abran.
 | El mapa sale gris para todo el mundo | El servidor no llega a OpenStreetMap (los planos los pide el foro, no el navegador). En `docker compose logs foro` verás «No se ha podido obtener el plano». Suele ser un cortafuegos de salida o un proxy del proveedor. |
 | El correo de recuperación no llega | Mira `docker compose logs --tail 50 foro`: el motivo sale en castellano. Casi siempre es que falta verificar el remitente en el proveedor, o que la clave `CORREO_CLAVE` ya no vale. Revisa también la carpeta de spam. |
 | Brevo responde «unrecognised IP address» | Brevo bloquea las direcciones que no conoce. Añade la del servidor en <https://app.brevo.com/security/authorised_ips> y repite el envío con `bash scripts/correo.sh --probar`. La clave no tiene nada que ver. |
+| Brevo o Resend con un remitente `@gmail.com` | No llega nunca, aunque el envío se acepte. Gmail descarta lo que dice venir de `gmail.com` sin haber salido de Google. Autentica tu dominio en el proveedor y envía desde `foro@tudominio.es`. Ver README, «Enviar desde tu dominio». |
 | El script dice «enviado» pero no llega nada | Brevo lo aceptó y falló después. Míralo en su panel, en **Transactional → Logs**: ahí pone si salió, si rebotó o si está retenido. Las cuentas nuevas suelen estar pendientes de activación las primeras horas. Repasa también que el remitente esté verificado y la dirección de destino bien escrita. |
 
 ---

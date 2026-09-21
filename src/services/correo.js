@@ -30,9 +30,10 @@ const PROVEEDORES = {
     nombre: 'Brevo',
     url: 'https://api.brevo.com/v3/smtp/email',
     cabeceras: (clave) => ({ 'api-key': clave, 'content-type': 'application/json', accept: 'application/json' }),
-    cuerpo: ({ remitente, nombre, para, asunto, texto, html }) => ({
+    cuerpo: ({ remitente, nombre, para, asunto, texto, html, responderA }) => ({
       sender: { email: remitente, name: nombre },
       to: [{ email: para }],
+      ...(responderA ? { replyTo: { email: responderA } } : {}),
       subject: asunto,
       textContent: texto,
       htmlContent: html,
@@ -42,9 +43,10 @@ const PROVEEDORES = {
     nombre: 'Resend',
     url: 'https://api.resend.com/emails',
     cabeceras: (clave) => ({ authorization: `Bearer ${clave}`, 'content-type': 'application/json' }),
-    cuerpo: ({ remitente, nombre, para, asunto, texto, html }) => ({
+    cuerpo: ({ remitente, nombre, para, asunto, texto, html, responderA }) => ({
       from: `${nombre} <${remitente}>`,
       to: [para],
+      ...(responderA ? { reply_to: responderA } : {}),
       subject: asunto,
       text: texto,
       html,
@@ -101,6 +103,10 @@ function explicar(estado, payload) {
 
 export function createMailService(config) {
   const { proveedor, clave, remitente, nombre, servidor, puerto, usuario } = config.correo;
+  /* Los correos pueden salir de una dirección que no recibe nada, por ejemplo
+     foro@tudominio.es sin buzón contratado. Para que una respuesta no se pierda,
+     se dirige al correo de contacto del foro cuando es otro distinto. */
+  const responderA = config.site.contactEmail && config.site.contactEmail !== remitente ? config.site.contactEmail : '';
   const ajustes = PROVEEDORES[proveedor];
   const esSmtp = proveedor === 'smtp';
   // «consola» funciona siempre; el buzón propio necesita servidor y cuenta; los
@@ -138,6 +144,7 @@ export function createMailService(config) {
     // Nombre para el aviso de privacidad: el vecino tiene derecho a saber por
     // dónde pasa su correo electrónico.
     nombreProveedor: esSmtp ? servidor : ajustes?.nombre || '',
+    responderA,
 
     /** Envía un correo. Devuelve true si el proveedor lo ha aceptado. */
     async enviar({ para, asunto, texto, html }) {
@@ -149,7 +156,14 @@ export function createMailService(config) {
       if (esSmtp) {
         try {
           const buzon = await abrirBuzon();
-          await buzon.sendMail({ from: { name: nombre, address: remitente }, to: para, subject: asunto, text: texto, html });
+          await buzon.sendMail({
+            from: { name: nombre, address: remitente },
+            to: para,
+            ...(responderA ? { replyTo: responderA } : {}),
+            subject: asunto,
+            text: texto,
+            html,
+          });
           return true;
         } catch (err) {
           throw new Error(explicarSmtp(err));
@@ -158,7 +172,7 @@ export function createMailService(config) {
       const respuesta = await fetch(config.correo.url || ajustes.url, {
         method: 'POST',
         headers: ajustes.cabeceras(clave),
-        body: JSON.stringify(ajustes.cuerpo({ remitente, nombre, para, asunto, texto, html })),
+        body: JSON.stringify(ajustes.cuerpo({ remitente, nombre, para, asunto, texto, html, responderA })),
         signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS),
       });
       if (!respuesta.ok) {

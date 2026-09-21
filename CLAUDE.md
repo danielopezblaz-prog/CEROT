@@ -24,7 +24,7 @@ Para el usuario, `Iniciar.cmd` lo arranca con doble clic.
 |---|---|
 | `npm start` | Arranca el foro |
 | `npm run dev` | Igual, recargando al cambiar `src/` |
-| `npm test` | 56 pruebas (node:test, base de datos en memoria) |
+| `npm test` | 57 pruebas (node:test, base de datos en memoria) |
 | `npm run rastreo` | Recorre las 186 páginas con 3 perfiles y avisa de las rotas |
 | `npm run carga` | Mide peticiones por segundo, incluido el directo con 300 conexiones |
 | `npm run exportar` | Copia estática navegable en `export/` (ver README) |
@@ -127,6 +127,12 @@ Son suyas y algunas tienen consecuencias legales:
   viene cerrado en casi todos los alojamientos y Gmail descarta lo que llega de
   una IP sin historial. Por eso `CORREO_PROVEEDOR` es obligatorio: `smtp` (buzón
   propio, con `nodemailer`), `brevo`/`resend` (API con `fetch`) o `consola`.
+- **Un remitente `@gmail.com` a través de Brevo o Resend no llega.** Gmail
+  descarta el correo que dice venir de `gmail.com` sin haber salido de Google.
+  Con esos proveedores el remitente tiene que ser del dominio propio, con sus
+  registros DKIM y SPF puestos. Para enviar desde `foro@veredadelosestudiantes.es`
+  no hace falta tener buzón ahí: las respuestas se redirigen con `Reply-To` a
+  `CONTACT_EMAIL`.
 - **SEO:** los bloques `<script type="application/ld+json">` no se ejecutan, así
   que la CSP sin `unsafe-inline` no los bloquea; son la única excepción a «ningún
   script incrustado». La dirección canónica solo conserva `categoria`, `tipo` y
