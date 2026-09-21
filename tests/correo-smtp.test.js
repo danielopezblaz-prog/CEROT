@@ -1,14 +1,16 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import net from 'node:net';
+import http from 'node:http';
 import { createMailService, correoDeRecuperacion, correoDePrueba } from '../src/services/correo.js';
 import { config } from '../src/config.js';
 
 /*
- * Envío por el buzón propio (CORREO_PROVEEDOR=smtp). Aquí se levanta un buzón
- * fingido que habla el mismo idioma que uno de verdad, así que la prueba
- * recorre la conversación entera: saludo, contraseña, remitente, destinatario
- * y mensaje. No sale nada a internet.
+ * El envío de correo. La mayor parte va por el buzón propio
+ * (CORREO_PROVEEDOR=smtp): aquí se levanta un buzón fingido que habla el mismo
+ * idioma que uno de verdad, así que la prueba recorre la conversación entera:
+ * saludo, contraseña, remitente, destinatario y mensaje. Al final se comprueba
+ * también que los fallos de Brevo se explican bien. No sale nada a internet.
  */
 const recibidos = [];
 let buzon;
@@ -134,6 +136,38 @@ test('sin servidor o sin cuenta, el buzón propio no se da por configurado', asy
   assert.equal(servicio({ usuario: '' }).activo, false);
   assert.equal(servicio({ clave: '' }).activo, false);
   assert.equal(servicio({ remitente: '' }).activo, false);
+});
+
+test('cuando Brevo bloquea por la dirección del servidor, no manda a cambiar la clave', async () => {
+  // Brevo contesta 401 tanto si la clave es mala como si no conoce la IP, así
+  // que sin distinguirlo el aviso mandaba a generar otra clave, que no arregla nada.
+  const brevo = http.createServer((req, res) => {
+    res.statusCode = 401;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify({
+      code: 'unauthorized',
+      message: 'We have detected you are using an unrecognised IP address 187.127.68.187. If you performed this action make sure to add the new IP address in this list: https://app.brevo.com/security/authorised_ips',
+    }));
+  });
+  brevo.listen(0, '127.0.0.1');
+  await new Promise((r) => brevo.once('listening', r));
+  const correo = createMailService({
+    ...config,
+    correo: { proveedor: 'brevo', clave: 'xkeysib-de-prueba', remitente: 'foro@ejemplo.es', nombre: 'Foro', url: `http://127.0.0.1:${brevo.address().port}/v3/smtp/email` },
+  });
+  try {
+    await assert.rejects(
+      () => correo.enviar({ para: 'daniel@ejemplo.es', asunto: 'Hola', texto: 'Hola', html: '<p>Hola</p>' }),
+      (err) => {
+        assert.match(err.message, /no conoce la dirección de este servidor \(187\.127\.68\.187\)/);
+        assert.match(err.message, /authorised_ips/);
+        assert.doesNotMatch(err.message, /Genera una nueva/, 'cambiar la clave no arreglaría esto');
+        return true;
+      }
+    );
+  } finally {
+    brevo.close();
+  }
 });
 
 test('si el buzón no contesta, el motivo se explica en castellano', async () => {

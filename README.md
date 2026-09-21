@@ -448,8 +448,20 @@ enviar), te pide solo los datos de la que elijas y se encarga del resto. Se pued
 volver a ejecutar las veces que haga falta: solo toca las líneas del correo y
 nunca roza los datos de los vecinos.
 
-Si algo falla, el motivo sale ahí mismo, en castellano. También queda en los
-registros:
+Si algo falla, el motivo sale ahí mismo, en castellano, y los datos quedan
+guardados: cuando lo arregles, basta con repetir solo el envío de prueba, sin
+volver a escribir la clave.
+
+```bash
+cd /opt/foro && bash scripts/correo.sh --probar
+```
+
+Un tropiezo habitual con Brevo: bloquea las peticiones que llegan desde una
+dirección IP que no ha visto antes, y al principio la de tu servidor lo es. Se
+añade una vez en <https://app.brevo.com/security/authorised_ips> y listo. El foro
+lo detecta y te lo dice con esas palabras, sin mandarte a cambiar la clave.
+
+Todo queda también en los registros:
 
 ```bash
 docker compose logs --tail 50 foro

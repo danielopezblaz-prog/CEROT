@@ -69,6 +69,25 @@ DOMINIO="$(leer_env DOMINIO)"
 ADMIN="$(leer_env ADMIN_EMAIL)"
 ACTUAL="$(leer_env CORREO_PROVEEDOR)"
 
+# Con --probar solo se manda otro correo de prueba, sin tocar la configuración.
+# Sirve cuando el envío falló por algo de fuera (una dirección IP por autorizar,
+# un remitente sin confirmar) y no hay que volver a escribir la clave.
+if [ "${1:-}" = '--probar' ]; then
+  [ -n "$(leer_env CORREO_PROVEEDOR)" ] || abortar 'Todavía no hay correo configurado. Ejecuta:  bash scripts/correo.sh'
+  titulo 'Prueba de envío'
+  preguntar DESTINO '¿A qué dirección te mando el correo de prueba?' "$(leer_env ADMIN_EMAIL)"
+  echo
+  if docker compose exec -T -e "DESTINO_PRUEBA=$DESTINO" foro \
+       node --disable-warning=ExperimentalWarning scripts/probar-correo.mjs; then
+    echo
+    verde 'Enviado. Mira tu buzón (y la carpeta de spam, por si acaso).'
+    exit 0
+  fi
+  echo
+  rojo 'Sigue sin salir. El motivo está en la línea de arriba.'
+  exit 1
+fi
+
 titulo 'Correo del foro'
 if [ -n "$ACTUAL" ]; then
   gris "Ahora mismo envía con: $ACTUAL  (remitente: $(leer_env CORREO_REMITENTE))"
@@ -202,6 +221,11 @@ if docker compose exec -T -e "DESTINO_PRUEBA=$DESTINO" foro \
 else
   echo
   rojo 'No ha salido. El motivo está en la línea de arriba.'
-  rojo 'Arregla lo que diga y vuelve a ejecutar:  bash scripts/correo.sh'
+  echo
+  echo 'Los datos han quedado guardados. Cuando arregles lo que diga, NO hace falta'
+  echo 'volver a meter la clave: basta con repetir solo la prueba de envío con'
+  echo
+  echo "  cd $(pwd) && bash scripts/correo.sh --probar"
+  echo
   exit 1
 fi

@@ -76,6 +76,14 @@ function explicarSmtp(err) {
 /** Traduce los fallos del proveedor a algo que se entienda en el registro. */
 function explicar(estado, payload) {
   const detalle = payload?.message || payload?.error?.message || payload?.name || '';
+  // Brevo bloquea por omisión las peticiones que llegan desde una dirección IP
+  // que no ha visto antes, y contesta con el mismo código que una clave mala.
+  // Sin distinguirlo, el aviso mandaba a generar otra clave, que no arregla nada.
+  if (/unrecogni[sz]ed IP|authori[sz]ed_ips|unknown IP/i.test(detalle)) {
+    // Sin el último carácter no numérico se colaría el punto final de la frase.
+    const ip = detalle.match(/IP address ([0-9a-fA-F.:]*[0-9a-fA-F])/)?.[1] || 'la de este servidor';
+    return `El proveedor no conoce la dirección de este servidor (${ip}) y la bloquea. No hace falta cambiar la clave: entra en https://app.brevo.com/security/authorised_ips y añade esa dirección a la lista. Detalle: ${detalle}`;
+  }
   if (estado === 401 || estado === 403) {
     return `El proveedor de correo rechaza la clave (CORREO_CLAVE). Genera una nueva y vuelve a ponerla en el .env. Detalle: ${detalle || 'sin detalle'}`;
   }
