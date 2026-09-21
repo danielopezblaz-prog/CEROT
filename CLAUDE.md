@@ -1,5 +1,9 @@
 # Foro Vecinal · Vereda de los Estudiantes (Leganés)
 
+> Este fichero es el manual del proyecto y vale para cualquier asistente de
+> código. `AGENTS.md`, en la raíz, es un resumen de lo que no se puede saltar
+> nadie y apunta aquí para el detalle.
+
 Aplicación web para que los vecinos publiquen incidencias del barrio, las apoyen,
 sigan su estado y saquen informes para el Ayuntamiento. Incluye un directorio de
 comercios del barrio con sus ofertas y catálogos.

@@ -747,6 +747,8 @@ node --disable-warning=ExperimentalWarning scripts/reset-password.js correo@del-
 
 ```
 Iniciar.cmd            Arranque con doble clic (Windows)
+AGENTS.md              Reglas del proyecto para cualquier asistente de código
+CLAUDE.md              El manual completo: cómo está montado y sus trampas
 src/server.js          Punto de entrada
 src/app.js             Configuración de Express, seguridad y rutas
 src/config.js          Lectura de .env
